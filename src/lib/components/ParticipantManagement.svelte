@@ -8,10 +8,9 @@
     export let slot_id: string;
     export let unsubscribe_slot;
 
-    async function check_attendance(user_id: string, slot_id: string) {
-      // Call the API to mark the user as present
-      // API is /api/users/attendee
-      const check_attendance = await fetch(`/api/users/attendee`, {
+    async function toggle_attendance(user_id: string, slot_id: string) {
+      // Call the API to toggle the user's attendance
+      const toggle_attendance = await fetch(`/api/users/attendee`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -19,13 +18,25 @@
         body: JSON.stringify({ user_id, slot_id }),
       });
 
-      if(check_attendance.status == 200) {
+      if(toggle_attendance.status == 200) {
         try {
-          const response = await check_attendance.json();
+          const response = await toggle_attendance.json();
           attendees.set(response.attendees);
+          window.location.reload();
         } catch (error) {
-          console.error("Error marking user as present", error);
+          console.error("Error toggling attendance", error);
         }
+      }
+    }
+
+    async function toggle_responsible(user_id: string, slot_id: string) {
+      const res = await fetch(`/api/slots/toggle_responsible`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, slot_id })
+      });
+      if (res.status === 200) {
+        window.location.reload();
       }
     }
   </script>
@@ -60,9 +71,14 @@
           Retirer de la séance
         </DropdownMenu.Item>
 
-        <!--Mark the user as present-->
-        <DropdownMenu.Item on:click={() => check_attendance(id, slot_id)}>
-          Marquer comme présent
+        <!--Toggle the user's attendance-->
+        <DropdownMenu.Item on:click={() => toggle_attendance(id, slot_id)}>
+          Modifier la présence
+        </DropdownMenu.Item>
+
+        <!--Toggle co-responsible rights (instructor + participant required)-->
+        <DropdownMenu.Item on:click={() => toggle_responsible(id, slot_id)}>
+          Coresponsable
         </DropdownMenu.Item>
       </DropdownMenu.Group>
 

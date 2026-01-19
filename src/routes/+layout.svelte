@@ -177,8 +177,7 @@
     }
 
     .content {
-        background-color: rgba(214, 209, 152, 0.24);
-        background-blend-mode: saturation;
+        background-color: transparent;
     }
 
     /* Styles pour le header responsive avec transition */

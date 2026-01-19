@@ -60,7 +60,9 @@ export const load = async (event: ServerLoadEvent) => {
 
   const users = await prisma.user.findMany();
 
-  const slots = await prisma.slot.findMany();
+  const slots = await prisma.slot.findMany({
+    include: { responsibles: true }
+  });
 
   return {
     users: users,

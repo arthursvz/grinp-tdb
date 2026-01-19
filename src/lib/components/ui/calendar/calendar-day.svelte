@@ -3,7 +3,7 @@
 	import { cn } from "$lib/utils.js";
 	import { getLocalTimeZone, type DateValue } from "@internationalized/date";
 	import { Calendar as CalendarPrimitive } from "bits-ui";
-	import { afterUpdate } from "svelte";
+	import { onMount } from "svelte";
 
 	type $$Props = CalendarPrimitive.DayProps;
 	type $$Events = CalendarPrimitive.DayEvents;
@@ -15,7 +15,32 @@
 	
 	export { className as class };
 
+	let slot_exists = false;
+	let slot_types: string[] = [];
+	let previousDate: any = null;
+
+	onMount(() => {
+		updateSlotExists();
+		previousDate = date;
+	});
+
+	$: if (date !== previousDate && date) {
+		previousDate = date;
+		updateSlotExists();
+	}
+
+	export async function updateSlotExists() {
+		const result = await checkDate(date);
+		slot_exists = result.exists;
+		slot_types = result.slot_types || [];
+	};
+
 	async function checkDate(date : DateValue) {
+        // Only run on client side
+        if (typeof window === 'undefined') {
+            return { exists: false, slot_types: [] };
+        }
+
         // Request the route /api/slot/exists with the date as a parameter
 		let startOfDay = date.toDate(getLocalTimeZone());
 		startOfDay.setHours(0, 0, 0, 0);
@@ -34,20 +59,14 @@
         
         if (exists.status == 200) {
             return exists.json().then((data) => {
-                return data.exists;
+                return { exists: data.exists, slot_types: data.slot_types || [] };
             });
         } else {
-            return false;
+            return { exists: false, slot_types: [] };
         }
     }
 
-	$: slot_exists = false;
-
-	export async function updateSlotExists() {
-		slot_exists = await checkDate(date);
-	};
-
-	afterUpdate(async () => {
+	onMount(() => {
 		updateSlotExists();
 	});
 </script>
@@ -59,7 +78,7 @@
 	on:click
 	class={cn(
 		buttonVariants({ variant: "ghost" }),
-		"h-9 w-9 p-0 font-normal",
+		"h-9 w-9 p-0 font-normal relative",
 		"[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground",
 		// Selected
 		"data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground data-[selected]:focus:bg-primary data-[selected]:focus:text-primary-foreground data-[selected]:opacity-100",
@@ -69,7 +88,7 @@
 		"data-[unavailable]:text-destructive-foreground data-[unavailable]:line-through",
 		// Outside months
 		"data-[outside-month]:text-muted-foreground [&[data-outside-month][data-selected]]:bg-accent/50 [&[data-outside-month][data-selected]]:text-muted-foreground data-[outside-month]:pointer-events-none data-[outside-month]:opacity-50 [&[data-outside-month][data-selected]]:opacity-30",
-		slot_exists ? "day-button " : "",
+		slot_exists ? "day-button" : "",
 		className
 	)}
 	{...$$restProps}
@@ -85,14 +104,26 @@
 		.day-button {
 			display: flex;
 			flex-direction: column;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 0.15rem;
 		}
 		.day-button::after {
 			content: "";
-			display: block;
-			background-color: hsl(var(--primary));
-			height: 0.4rem;
-			width: 0.4rem;
-			border-radius: 1rem;
+			display: flex;
+			gap: 0.15rem;
 		}
 	</style>
+	{#if slot_exists && slot_types.length > 0}
+		<div class="flex justify-center gap-0.5 mt-0.5">
+			{#each slot_types as slot_type}
+				<div
+					class="h-1 w-1 rounded-full"
+					class:bg-primary={slot_type === 'CRENEAU'}
+					class:bg-green-500={slot_type === 'EVENEMENT'}
+					class:bg-red-500={slot_type === 'FERMETURE'}
+				/>
+			{/each}
+		</div>
+	{/if}
 </CalendarPrimitive.Day>

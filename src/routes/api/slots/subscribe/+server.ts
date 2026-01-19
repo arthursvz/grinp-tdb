@@ -1,25 +1,29 @@
 import prisma from "@/server/prisma";
+import { SlotType } from "@prisma/client";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async (event) => {
   const { user_id, slot_id } = await event.request.json();
 
-  const user = event.locals.user;
+  const sessionUser = event.locals.user;
+  const dbUser = sessionUser?.id
+    ? await prisma.user.findUnique({ where: { id: sessionUser.id } })
+    : null;
 
-  const can_manage = await prisma.user.findUnique({
-    where: {
-      id: user?.id
-    }
-  }).then((u) => u?.root
-    || (
-      u?.instructor &&
-        (prisma.slot.findUnique({
-          where: {
-            id: slot_id
-          }
-        }).then((s) => s?.owner_id === user?.id))
-    )
-  );
+  const slot = await prisma.slot.findUnique({ where: { id: slot_id } });
+  if (!slot) {
+    return new Response(JSON.stringify({ error: "Slot not found" }), { status: 404 });
+  }
+
+  const isOwner = !!dbUser?.instructor && slot.owner_id === dbUser.id;
+  const can_manage = !!dbUser?.root || isOwner;
+
+  const isBlockedType = slot.slot_type === SlotType.EVENEMENT || slot.slot_type === SlotType.FERMETURE;
+  if (isBlockedType && !can_manage) {
+    return new Response(JSON.stringify("Les inscriptions sont désactivées pour ce créneau."), {
+      status: 400,
+    });
+  }
 
   const participants_count = await prisma.user.findMany({
     where: {
@@ -31,14 +35,10 @@ export const POST: RequestHandler = async (event) => {
     },
   }).then((participants) => participants.length);
 
-  if (user?.id == user_id || can_manage) {
+  if (sessionUser?.id == user_id || can_manage) {
     // Add the user to the database
     try {
-      const capacity = await prisma.slot.findUnique({
-        where: {
-          id: slot_id,
-        },
-      }).then((slot) => slot?.capacity);
+      const capacity = slot.capacity;
 
       if (capacity && participants_count >= capacity && !can_manage) {
         return new Response(JSON.stringify("Slot is full !"), {

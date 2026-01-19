@@ -8,6 +8,21 @@
 		"src/routes/(app)/admin/+page.server.ts",
 		"src/routes/+layout.server.ts"
 	],
+	"/api/admin/backfill_owner_responsibles": [
+		"src/routes/api/admin/backfill_owner_responsibles/+server.ts"
+	],
+	"/api/admin/download_database": [
+		"src/routes/api/admin/download_database/+server.ts"
+	],
+	"/api/admin/reset_cotisant_as": [
+		"src/routes/api/admin/reset_cotisant_as/+server.ts"
+	],
+	"/api/admin/reset_cotisant_grinp": [
+		"src/routes/api/admin/reset_cotisant_grinp/+server.ts"
+	],
+	"/api/admin/reset_database": [
+		"src/routes/api/admin/reset_database/+server.ts"
+	],
 	"/api/slots/create": [
 		"src/routes/api/slots/create/+server.ts"
 	],
@@ -17,11 +32,20 @@
 	"/api/slots/exists": [
 		"src/routes/api/slots/exists/+server.ts"
 	],
+	"/api/slots/get": [
+		"src/routes/api/slots/get/+server.ts"
+	],
 	"/api/slots/subscribe": [
 		"src/routes/api/slots/subscribe/+server.ts"
 	],
+	"/api/slots/toggle_responsible": [
+		"src/routes/api/slots/toggle_responsible/+server.ts"
+	],
 	"/api/slots/unsubscribe": [
 		"src/routes/api/slots/unsubscribe/+server.ts"
+	],
+	"/api/slots/update": [
+		"src/routes/api/slots/update/+server.ts"
 	],
 	"/api/users/attendee": [
 		"src/routes/api/users/attendee/+server.ts"
@@ -31,6 +55,24 @@
 	],
 	"/api/users/promote_instructor": [
 		"src/routes/api/users/promote_instructor/+server.ts"
+	],
+	"/api/users/reset_cotisant_as": [
+		"src/routes/api/users/reset_cotisant_as/+server.ts"
+	],
+	"/api/users/reset_cotisant_grinp": [
+		"src/routes/api/users/reset_cotisant_grinp/+server.ts"
+	],
+	"/api/users/stats": [
+		"src/routes/api/users/stats/+server.ts"
+	],
+	"/api/users/toggle_admin": [
+		"src/routes/api/users/toggle_admin/+server.ts"
+	],
+	"/api/users/toggle_cotisant_as": [
+		"src/routes/api/users/toggle_cotisant_as/+server.ts"
+	],
+	"/api/users/toggle_cotisant_grinp": [
+		"src/routes/api/users/toggle_cotisant_grinp/+server.ts"
 	],
 	"/(app)/calendar": [
 		"src/routes/(app)/calendar/+page.server.ts",

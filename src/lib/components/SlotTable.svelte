@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
+    import { Input } from "$lib/components/ui/input";
     import {
       CardContent
     } from "$lib/components/ui/card";
@@ -8,13 +9,42 @@
     import type { Slot, User } from "@prisma/client";
     import { createRender, createTable, Render, Subscribe } from "svelte-headless-table";
     import { addPagination } from "svelte-headless-table/plugins";
+    import { writable } from "svelte/store";
     import type { Writable } from "svelte/store";
     import SlotManagement from "./SlotManagement.svelte";
 
     export let slots: Writable<Slot[]>;
     export let users: Writable<User[]>;
 
-    const table = createTable(slots, {
+    let searchQuery = "";
+    let allSlots: Slot[] = [];
+    let filteredSlotsStore = writable<Slot[]>([]);
+
+    // Get initial slots
+    slots.subscribe((s) => {
+        allSlots = s;
+        updateFiltered();
+    });
+
+    // Update filtered results when search changes
+    function updateFiltered() {
+        if (searchQuery.trim() === "") {
+            filteredSlotsStore.set(allSlots);
+        } else {
+            const query = searchQuery.toLowerCase();
+            const filtered = allSlots.filter((slot) => {
+                return (
+                    (slot.name && slot.name.toLowerCase().includes(query)) ||
+                    (slot.description && slot.description.toLowerCase().includes(query))
+                );
+            });
+            filteredSlotsStore.set(filtered);
+        }
+    }
+
+    $: searchQuery, updateFiltered();
+
+    const table = createTable(filteredSlotsStore, {
         page: addPagination({
             initialPageSize: 5,
         }),
@@ -47,11 +77,25 @@
             header: "Jauge",
         }),
         table.column({
-            accessor: ({ owner_id }) => {
-                const user = $users.find((user) => user.id === owner_id);
-                return user?.first_name + " " + user?.last_name;
+            accessor: "slot_type",
+            header: "Type",
+            cell: ({ value }) => {
+                if (value === "EVENEMENT") return "Évènement";
+                if (value === "FERMETURE") return "Fermeture";
+                return "Créneau";
+            }
+        }),
+        table.column({
+            accessor: (slot) => {
+                // If responsibles is present, list them; else fallback to owner
+                const responsibles = (slot as any).responsibles as User[] | undefined;
+                if (responsibles && responsibles.length > 0) {
+                    return responsibles.map(u => `${u.first_name} ${u.last_name}`).join(", ");
+                }
+                const user = $users.find((user) => user.id === slot.owner_id);
+                return user ? `${user.first_name} ${user.last_name}` : "";
             },
-            header: "Responsable",
+            header: "Responsables",
         }),
         table.column({
             accessor: ({ id }) => id,
@@ -71,7 +115,15 @@
 
 <CardContent class="flex flex-col gap-4 pt-6">
 
-    <h2 class="text-base font-semibold">Créneaux :</h2>
+    <div class="flex items-center justify-between gap-4">
+        <h2 class="text-base font-semibold">Créneaux :</h2>
+        <Input
+            type="text"
+            placeholder="Rechercher par nom ou description..."
+            bind:value={searchQuery}
+            class="max-w-xs"
+        />
+    </div>
 
     <div class="rounded-md border w-full">
         <Table.Root {...$tableAttrs}>

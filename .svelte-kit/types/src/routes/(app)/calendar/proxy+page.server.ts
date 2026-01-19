@@ -7,18 +7,6 @@ import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
 import type { PageServerLoad } from "./$types";
 
-let slot = {
-  id: 0,
-  starts_at: new Date("0000-00-00T00:00:00Z"),
-  ends_at: new Date("0000-00-00T00:00:00Z"),
-  owner_id: 0,
-};
-
-let owner = {
-  id: 0,
-  name: "",
-};
-
 export const load = async (event: Parameters<PageServerLoad>[0]) => {
   const user = event.locals.user;
 
@@ -27,11 +15,6 @@ export const load = async (event: Parameters<PageServerLoad>[0]) => {
     redirect(
       302,
       "/login",
-      /*{
-        type: "error",
-        message: "Vous devez être connecté pour accéder à cette page !",
-      },
-      event,*/
     );
   }
 
@@ -59,27 +42,29 @@ export const load = async (event: Parameters<PageServerLoad>[0]) => {
     const endOfDay = new Date(startOfDay);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Trouve le créneau correspondant
-    const slot = await prisma.slot.findFirstOrThrow({
+    // Trouve tous les créneaux du jour (max 3)
+    const slots = await prisma.slot.findMany({
       where: {
         starts_at: {
-          gte: startOfDay, // greater than or equal to start of day
-          lt: endOfDay, // less than end of day
+          gte: startOfDay,
+          lt: endOfDay,
         },
       },
-    });
-
-    // Trouve le propriétaire du créneau
-    const owner = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: slot.owner_id,
+      include: { 
+        responsibles: true,
+        owner: true
       },
+      orderBy: {
+        starts_at: 'asc'
+      }
     });
 
-    // Trouve les participants du créneau
+    // Get all users for the add user feature
+    const all_users = await prisma.user.findMany();
 
-    const participants_list =
-      await prisma.user.findMany({
+    // Prepare data for each slot
+    const slotsData = await Promise.all(slots.map(async (slot) => {
+      const participants_list = await prisma.user.findMany({
         where: {
           slots: {
             some: {
@@ -87,11 +72,9 @@ export const load = async (event: Parameters<PageServerLoad>[0]) => {
             },
           },
         },
-      }
-    ) ?? [];
+      }) ?? [];
 
-    const attendees_list =
-      await prisma.user.findMany({
+      const attendees_list = await prisma.user.findMany({
         where: {
           attended_slots: {
             some: {
@@ -99,34 +82,31 @@ export const load = async (event: Parameters<PageServerLoad>[0]) => {
             },
           },
         },
-      }
-    ) ?? [];
+      }) ?? [];
 
-    // Retourne les données nécessaires à la page, y compris l'utilisateur actuel
+      return {
+        slot,
+        owner: slot.owner,
+        participants_list,
+        attendees_list
+      };
+    }));
+
+    // Retourne les données nécessaires à la page
     return {
-      slot: slot,
-      owner: owner,
+      slots: slotsData,
       user: event.locals.user,
       form: await superValidate(zod(slotScheme)),
-      participants_list: participants_list,
-      attendees_list: attendees_list
+      all_users: all_users,
+      dateString: dateParam || date.toISOString().split('T')[0]
     };
   } catch (error: any) {
-    if (error.code === "P2025") {
-      return {
-        slot: slot,
-        owner: owner,
-        user: event.locals.user,
-        form: await superValidate(zod(slotScheme)),
-        participants_list: [],
-        attendees_list: [],
-      };
-    } else {
-      goto(event.url);
-      return {
-        status: error.status,
-        error: error,
-      };
-    }
+    return {
+      slots: [],
+      user: event.locals.user,
+      form: await superValidate(zod(slotScheme)),
+      all_users: [],
+      dateString: dateParam || new Date().toISOString().split('T')[0]
+    };
   }
 };

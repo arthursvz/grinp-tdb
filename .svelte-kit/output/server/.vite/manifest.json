@@ -1,0 +1,753 @@
+{
+  ".svelte-kit/generated/server/internal.js": {
+    "file": "internal.js",
+    "name": "internal",
+    "src": ".svelte-kit/generated/server/internal.js",
+    "isEntry": true,
+    "imports": [
+      "_internal.js",
+      "_shared-server.js"
+    ]
+  },
+  "_addPagination.js": {
+    "file": "chunks/addPagination.js",
+    "name": "addPagination",
+    "imports": [
+      "_index2.js"
+    ]
+  },
+  "_button.js": {
+    "file": "chunks/button.js",
+    "name": "button",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_index2.js",
+      "_ssr2.js",
+      "_scheduler.js",
+      "_utils.js"
+    ]
+  },
+  "_card-content.js": {
+    "file": "chunks/card-content.js",
+    "name": "card-content",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_utils.js"
+    ]
+  },
+  "_card-description.js": {
+    "file": "chunks/card-description.js",
+    "name": "card-description",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_utils.js"
+    ]
+  },
+  "_card-footer.js": {
+    "file": "chunks/card-footer.js",
+    "name": "card-footer",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_utils.js"
+    ]
+  },
+  "_card.js": {
+    "file": "chunks/card.js",
+    "name": "card",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_utils.js"
+    ]
+  },
+  "_client.js": {
+    "file": "chunks/client.js",
+    "name": "client",
+    "imports": [
+      "_index2.js",
+      "_lifecycle.js",
+      "_stores.js"
+    ]
+  },
+  "_create.js": {
+    "file": "chunks/create.js",
+    "name": "create",
+    "imports": [
+      "_button.js"
+    ]
+  },
+  "_events.js": {
+    "file": "chunks/events.js",
+    "name": "events",
+    "imports": [
+      "_lifecycle.js"
+    ]
+  },
+  "_exports.js": {
+    "file": "chunks/exports.js",
+    "name": "exports"
+  },
+  "_index.js": {
+    "file": "chunks/index.js",
+    "name": "index"
+  },
+  "_index2.js": {
+    "file": "chunks/index2.js",
+    "name": "index",
+    "imports": [
+      "_lifecycle.js"
+    ]
+  },
+  "_index3.js": {
+    "file": "chunks/index3.js",
+    "name": "index",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_utils.js",
+      "_button.js",
+      "_create.js",
+      "_events.js",
+      "_index2.js"
+    ]
+  },
+  "_input.js": {
+    "file": "chunks/input.js",
+    "name": "input",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_utils.js"
+    ]
+  },
+  "_internal.js": {
+    "file": "chunks/internal.js",
+    "name": "internal",
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_ssr2.js",
+      "_shared-server.js"
+    ],
+    "dynamicImports": [
+      "src/hooks.server.ts"
+    ]
+  },
+  "_lifecycle.js": {
+    "file": "chunks/lifecycle.js",
+    "name": "lifecycle"
+  },
+  "_lucia.js": {
+    "file": "chunks/lucia.js",
+    "name": "lucia",
+    "imports": [
+      "_shared-server.js",
+      "_prisma.js"
+    ]
+  },
+  "_prisma.js": {
+    "file": "chunks/prisma.js",
+    "name": "prisma"
+  },
+  "_prod-ssr.js": {
+    "file": "chunks/prod-ssr.js",
+    "name": "prod-ssr"
+  },
+  "_scheduler.js": {
+    "file": "chunks/scheduler.js",
+    "name": "scheduler",
+    "imports": [
+      "_lifecycle.js"
+    ]
+  },
+  "_server.js": {
+    "file": "chunks/server.js",
+    "name": "server",
+    "imports": [
+      "_index.js"
+    ]
+  },
+  "_shared-server.js": {
+    "file": "chunks/shared-server.js",
+    "name": "shared-server"
+  },
+  "_ssr.js": {
+    "file": "chunks/ssr.js",
+    "name": "ssr",
+    "imports": [
+      "_lifecycle.js"
+    ]
+  },
+  "_ssr2.js": {
+    "file": "chunks/ssr2.js",
+    "name": "ssr"
+  },
+  "_stores.js": {
+    "file": "chunks/stores.js",
+    "name": "stores",
+    "imports": [
+      "_lifecycle.js",
+      "_exports.js"
+    ]
+  },
+  "_stores2.js": {
+    "file": "chunks/stores2.js",
+    "name": "stores",
+    "imports": [
+      "_ssr.js",
+      "_lifecycle.js",
+      "_utils.js",
+      "_button.js",
+      "_events.js",
+      "_index2.js",
+      "_scheduler.js",
+      "_updater.js"
+    ]
+  },
+  "_superValidate.js": {
+    "file": "chunks/superValidate.js",
+    "name": "superValidate",
+    "imports": [
+      "_index.js",
+      "_zod.js"
+    ]
+  },
+  "_updater.js": {
+    "file": "chunks/updater.js",
+    "name": "updater"
+  },
+  "_utils.js": {
+    "file": "chunks/utils.js",
+    "name": "utils"
+  },
+  "_zod.js": {
+    "file": "chunks/zod.js",
+    "name": "zod",
+    "imports": [
+      "_index2.js",
+      "_stores.js",
+      "_prod-ssr.js",
+      "_lifecycle.js",
+      "_scheduler.js"
+    ]
+  },
+  "node_modules/@sveltejs/kit/src/runtime/server/index.js": {
+    "file": "index.js",
+    "name": "index",
+    "src": "node_modules/@sveltejs/kit/src/runtime/server/index.js",
+    "isEntry": true,
+    "imports": [
+      "_prod-ssr.js",
+      "_internal.js",
+      "_index.js",
+      "_exports.js",
+      "_index2.js",
+      "_shared-server.js"
+    ]
+  },
+  "src/hooks.server.ts": {
+    "file": "chunks/hooks.server.js",
+    "name": "hooks.server",
+    "src": "src/hooks.server.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_lucia.js",
+      "_prisma.js"
+    ]
+  },
+  "src/lib/assets/background-2.png": {
+    "file": "_app/immutable/assets/background-2.CScv1KBf.png",
+    "src": "src/lib/assets/background-2.png"
+  },
+  "src/lib/assets/background-3.png": {
+    "file": "_app/immutable/assets/background-3.hg-j-llf.png",
+    "src": "src/lib/assets/background-3.png"
+  },
+  "src/lib/assets/background-4.png": {
+    "file": "_app/immutable/assets/background-4.DGjb-jAY.png",
+    "src": "src/lib/assets/background-4.png"
+  },
+  "src/routes/(app)/admin/+page.server.ts": {
+    "file": "entries/pages/(app)/admin/_page.server.ts.js",
+    "name": "entries/pages/(app)/admin/_page.server.ts",
+    "src": "src/routes/(app)/admin/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js",
+      "_server.js"
+    ]
+  },
+  "src/routes/(app)/admin/+page.svelte": {
+    "file": "entries/pages/(app)/admin/_page.svelte.js",
+    "name": "entries/pages/(app)/admin/_page.svelte",
+    "src": "src/routes/(app)/admin/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_card.js",
+      "_card-description.js",
+      "_button.js",
+      "_lifecycle.js",
+      "_input.js",
+      "_card-content.js",
+      "_card-footer.js",
+      "_utils.js",
+      "_addPagination.js",
+      "_stores2.js",
+      "_index2.js"
+    ]
+  },
+  "src/routes/(app)/calendar/+page.server.ts": {
+    "file": "entries/pages/(app)/calendar/_page.server.ts.js",
+    "name": "entries/pages/(app)/calendar/_page.server.ts",
+    "src": "src/routes/(app)/calendar/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_stores.js",
+      "_prisma.js",
+      "_zod.js",
+      "_server.js",
+      "_index.js",
+      "_superValidate.js"
+    ]
+  },
+  "src/routes/(app)/calendar/+page.svelte": {
+    "file": "entries/pages/(app)/calendar/_page.svelte.js",
+    "name": "entries/pages/(app)/calendar/_page.svelte",
+    "src": "src/routes/(app)/calendar/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_stores.js",
+      "_card.js",
+      "_card-content.js",
+      "_card-description.js",
+      "_button.js",
+      "_client.js",
+      "_zod.js",
+      "_index.js",
+      "_index2.js",
+      "_addPagination.js",
+      "_stores2.js",
+      "_events.js",
+      "_updater.js",
+      "_utils.js",
+      "_scheduler.js",
+      "_create.js"
+    ]
+  },
+  "src/routes/(app)/events/+page.server.ts": {
+    "file": "entries/pages/(app)/events/_page.server.ts.js",
+    "name": "entries/pages/(app)/events/_page.server.ts",
+    "src": "src/routes/(app)/events/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_server.js"
+    ]
+  },
+  "src/routes/(app)/events/+page.svelte": {
+    "file": "entries/pages/(app)/events/_page.svelte.js",
+    "name": "entries/pages/(app)/events/_page.svelte",
+    "src": "src/routes/(app)/events/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_card.js",
+      "_card-content.js",
+      "_card-description.js"
+    ]
+  },
+  "src/routes/(app)/instructor/+page.server.ts": {
+    "file": "entries/pages/(app)/instructor/_page.server.ts.js",
+    "name": "entries/pages/(app)/instructor/_page.server.ts",
+    "src": "src/routes/(app)/instructor/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js",
+      "_server.js"
+    ]
+  },
+  "src/routes/(app)/instructor/+page.svelte": {
+    "file": "entries/pages/(app)/instructor/_page.svelte.js",
+    "name": "entries/pages/(app)/instructor/_page.svelte",
+    "src": "src/routes/(app)/instructor/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_card.js",
+      "_card-description.js",
+      "_index2.js",
+      "_addPagination.js"
+    ]
+  },
+  "src/routes/(app)/login/+page.server.ts": {
+    "file": "entries/pages/(app)/login/_page.server.ts.js",
+    "name": "entries/pages/(app)/login/_page.server.ts",
+    "src": "src/routes/(app)/login/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_shared-server.js",
+      "_zod.js",
+      "_lucia.js",
+      "_prisma.js",
+      "_index.js",
+      "_server.js",
+      "_stores.js",
+      "_superValidate.js"
+    ]
+  },
+  "src/routes/(app)/login/+page.svelte": {
+    "file": "entries/pages/(app)/login/_page.svelte.js",
+    "name": "entries/pages/(app)/login/_page.svelte",
+    "src": "src/routes/(app)/login/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_zod.js",
+      "_card.js",
+      "_card-content.js",
+      "_card-description.js",
+      "_card-footer.js",
+      "_index3.js",
+      "_input.js",
+      "_button.js",
+      "_index2.js",
+      "_events.js",
+      "_updater.js",
+      "_utils.js",
+      "_stores.js",
+      "_index.js",
+      "_client.js"
+    ]
+  },
+  "src/routes/(app)/logout/+page.server.ts": {
+    "file": "entries/pages/(app)/logout/_page.server.ts.js",
+    "name": "entries/pages/(app)/logout/_page.server.ts",
+    "src": "src/routes/(app)/logout/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_lucia.js",
+      "_index.js"
+    ]
+  },
+  "src/routes/(app)/register/+page.server.ts": {
+    "file": "entries/pages/(app)/register/_page.server.ts.js",
+    "name": "entries/pages/(app)/register/_page.server.ts",
+    "src": "src/routes/(app)/register/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_zod.js",
+      "_lucia.js",
+      "_prisma.js",
+      "_index.js",
+      "_stores.js",
+      "_superValidate.js"
+    ]
+  },
+  "src/routes/(app)/register/+page.svelte": {
+    "file": "entries/pages/(app)/register/_page.svelte.js",
+    "name": "entries/pages/(app)/register/_page.svelte",
+    "src": "src/routes/(app)/register/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_card.js",
+      "_card-content.js",
+      "_card-description.js",
+      "_index3.js",
+      "_input.js",
+      "_zod.js",
+      "_stores.js",
+      "_index.js"
+    ]
+  },
+  "src/routes/(app)/user/[id]/+page.server.ts": {
+    "file": "entries/pages/(app)/user/_id_/_page.server.ts.js",
+    "name": "entries/pages/(app)/user/_id_/_page.server.ts",
+    "src": "src/routes/(app)/user/[id]/+page.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/(app)/user/[id]/+page.svelte": {
+    "file": "entries/pages/(app)/user/_id_/_page.svelte.js",
+    "name": "entries/pages/(app)/user/_id_/_page.svelte",
+    "src": "src/routes/(app)/user/[id]/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_card-description.js",
+      "_card-footer.js",
+      "_card.js",
+      "_card-content.js"
+    ]
+  },
+  "src/routes/(app)/user/edit/+page.svelte": {
+    "file": "entries/pages/(app)/user/edit/_page.svelte.js",
+    "name": "entries/pages/(app)/user/edit/_page.svelte",
+    "src": "src/routes/(app)/user/edit/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js"
+    ]
+  },
+  "src/routes/+error.svelte": {
+    "file": "entries/pages/_error.svelte.js",
+    "name": "entries/pages/_error.svelte",
+    "src": "src/routes/+error.svelte",
+    "isEntry": true,
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_stores.js",
+      "_card-description.js",
+      "_card.js"
+    ]
+  },
+  "src/routes/+layout.server.ts": {
+    "file": "entries/pages/_layout.server.ts.js",
+    "name": "entries/pages/_layout.server.ts",
+    "src": "src/routes/+layout.server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js",
+      "_server.js"
+    ]
+  },
+  "src/routes/+layout.svelte": {
+    "file": "entries/pages/_layout.svelte.js",
+    "name": "entries/pages/_layout.svelte",
+    "src": "src/routes/+layout.svelte",
+    "isEntry": true,
+    "imports": [
+      "_lifecycle.js",
+      "_ssr.js",
+      "_button.js",
+      "_index2.js",
+      "_stores.js",
+      "_client.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_layout.C_mZJvPx.css"
+    ]
+  },
+  "src/routes/+page.server.ts": {
+    "file": "entries/pages/_page.server.ts.js",
+    "name": "entries/pages/_page.server.ts",
+    "src": "src/routes/+page.server.ts",
+    "isEntry": true
+  },
+  "src/routes/+page.svelte": {
+    "file": "entries/pages/_page.svelte.js",
+    "name": "entries/pages/_page.svelte",
+    "src": "src/routes/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_card.js",
+      "_card-content.js",
+      "_button.js"
+    ]
+  },
+  "src/routes/api/admin/backfill_owner_responsibles/+server.ts": {
+    "file": "entries/endpoints/api/admin/backfill_owner_responsibles/_server.ts.js",
+    "name": "entries/endpoints/api/admin/backfill_owner_responsibles/_server.ts",
+    "src": "src/routes/api/admin/backfill_owner_responsibles/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/admin/download_database/+server.ts": {
+    "file": "entries/endpoints/api/admin/download_database/_server.ts.js",
+    "name": "entries/endpoints/api/admin/download_database/_server.ts",
+    "src": "src/routes/api/admin/download_database/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/admin/reset_cotisant_as/+server.ts": {
+    "file": "entries/endpoints/api/admin/reset_cotisant_as/_server.ts.js",
+    "name": "entries/endpoints/api/admin/reset_cotisant_as/_server.ts",
+    "src": "src/routes/api/admin/reset_cotisant_as/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/admin/reset_cotisant_grinp/+server.ts": {
+    "file": "entries/endpoints/api/admin/reset_cotisant_grinp/_server.ts.js",
+    "name": "entries/endpoints/api/admin/reset_cotisant_grinp/_server.ts",
+    "src": "src/routes/api/admin/reset_cotisant_grinp/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/admin/reset_database/+server.ts": {
+    "file": "entries/endpoints/api/admin/reset_database/_server.ts.js",
+    "name": "entries/endpoints/api/admin/reset_database/_server.ts",
+    "src": "src/routes/api/admin/reset_database/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/create/+server.ts": {
+    "file": "entries/endpoints/api/slots/create/_server.ts.js",
+    "name": "entries/endpoints/api/slots/create/_server.ts",
+    "src": "src/routes/api/slots/create/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_zod.js",
+      "_prisma.js",
+      "_stores.js",
+      "_index.js",
+      "_superValidate.js"
+    ]
+  },
+  "src/routes/api/slots/delete/+server.ts": {
+    "file": "entries/endpoints/api/slots/delete/_server.ts.js",
+    "name": "entries/endpoints/api/slots/delete/_server.ts",
+    "src": "src/routes/api/slots/delete/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/exists/+server.ts": {
+    "file": "entries/endpoints/api/slots/exists/_server.ts.js",
+    "name": "entries/endpoints/api/slots/exists/_server.ts",
+    "src": "src/routes/api/slots/exists/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/get/+server.ts": {
+    "file": "entries/endpoints/api/slots/get/_server.ts.js",
+    "name": "entries/endpoints/api/slots/get/_server.ts",
+    "src": "src/routes/api/slots/get/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/subscribe/+server.ts": {
+    "file": "entries/endpoints/api/slots/subscribe/_server.ts.js",
+    "name": "entries/endpoints/api/slots/subscribe/_server.ts",
+    "src": "src/routes/api/slots/subscribe/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/toggle_responsible/+server.ts": {
+    "file": "entries/endpoints/api/slots/toggle_responsible/_server.ts.js",
+    "name": "entries/endpoints/api/slots/toggle_responsible/_server.ts",
+    "src": "src/routes/api/slots/toggle_responsible/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/unsubscribe/+server.ts": {
+    "file": "entries/endpoints/api/slots/unsubscribe/_server.ts.js",
+    "name": "entries/endpoints/api/slots/unsubscribe/_server.ts",
+    "src": "src/routes/api/slots/unsubscribe/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/slots/update/+server.ts": {
+    "file": "entries/endpoints/api/slots/update/_server.ts.js",
+    "name": "entries/endpoints/api/slots/update/_server.ts",
+    "src": "src/routes/api/slots/update/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/attendee/+server.ts": {
+    "file": "entries/endpoints/api/users/attendee/_server.ts.js",
+    "name": "entries/endpoints/api/users/attendee/_server.ts",
+    "src": "src/routes/api/users/attendee/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/delete/+server.ts": {
+    "file": "entries/endpoints/api/users/delete/_server.ts.js",
+    "name": "entries/endpoints/api/users/delete/_server.ts",
+    "src": "src/routes/api/users/delete/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/promote_instructor/+server.ts": {
+    "file": "entries/endpoints/api/users/promote_instructor/_server.ts.js",
+    "name": "entries/endpoints/api/users/promote_instructor/_server.ts",
+    "src": "src/routes/api/users/promote_instructor/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/reset_cotisant_as/+server.ts": {
+    "file": "entries/endpoints/api/users/reset_cotisant_as/_server.ts.js",
+    "name": "entries/endpoints/api/users/reset_cotisant_as/_server.ts",
+    "src": "src/routes/api/users/reset_cotisant_as/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/reset_cotisant_grinp/+server.ts": {
+    "file": "entries/endpoints/api/users/reset_cotisant_grinp/_server.ts.js",
+    "name": "entries/endpoints/api/users/reset_cotisant_grinp/_server.ts",
+    "src": "src/routes/api/users/reset_cotisant_grinp/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/toggle_admin/+server.ts": {
+    "file": "entries/endpoints/api/users/toggle_admin/_server.ts.js",
+    "name": "entries/endpoints/api/users/toggle_admin/_server.ts",
+    "src": "src/routes/api/users/toggle_admin/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/toggle_cotisant_as/+server.ts": {
+    "file": "entries/endpoints/api/users/toggle_cotisant_as/_server.ts.js",
+    "name": "entries/endpoints/api/users/toggle_cotisant_as/_server.ts",
+    "src": "src/routes/api/users/toggle_cotisant_as/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  },
+  "src/routes/api/users/toggle_cotisant_grinp/+server.ts": {
+    "file": "entries/endpoints/api/users/toggle_cotisant_grinp/_server.ts.js",
+    "name": "entries/endpoints/api/users/toggle_cotisant_grinp/_server.ts",
+    "src": "src/routes/api/users/toggle_cotisant_grinp/+server.ts",
+    "isEntry": true,
+    "imports": [
+      "_prisma.js"
+    ]
+  }
+}

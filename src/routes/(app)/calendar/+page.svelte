@@ -11,7 +11,6 @@
     import SlotCard from "@/components/SlotCard.svelte";
     import Calendar from "@/components/ui/calendar/calendar.svelte";
     import CardDescription from "@/components/ui/card/card-description.svelte";
-    import { attendees, participants } from "@/stores";
     import {
       CalendarDate,
       getLocalTimeZone,
@@ -23,12 +22,16 @@
     let value: CalendarDate;
 
     export let data: {
-        slot: Slot;
-        owner: User;
+        slots: Array<{
+            slot: Slot;
+            owner: User;
+            participants_list: User[];
+            attendees_list: User[];
+        }>;
         user: User;
-        form: any
-        participants_list: User[];
-        attendees_list: User[];
+        form: any;
+        all_users: User[];
+        dateString: string;
     };
 
     // Récupérer la date dans l'URL au chargement
@@ -45,12 +48,8 @@
         }
     }
 
-    // Mettre à jour les participants
+    // Mettre à jour l'URL lorsque `value` change
     $: {
-        participants.set(data.participants_list);
-        attendees.set(data.attendees_list);
-
-        // Mettre à jour l'URL lorsque `value` change
         if (browser) {
             const query = new URLSearchParams($page.url.searchParams.toString());
             if (value != undefined) {
@@ -94,7 +93,9 @@
             </div>
         </div>
 
-        <SlotCard data={data} slotDate={value?.toString()}/>
+        <div class="flex flex-col gap-4 w-full md:w-1/2">
+            <SlotCard {data} slotDate={value?.toString()}/>
+        </div>
                 
     </CardContent>
 </Card>

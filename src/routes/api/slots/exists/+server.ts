@@ -8,18 +8,24 @@ export const POST: RequestHandler = async (event) => {
 
     if (user) {
         try {
-            const exists = await prisma.slot.findMany({
+            const slots = await prisma.slot.findMany({
                 where: {
                     starts_at: {
                         gte: startOfDay,
                         lt: endOfDay
                     }
+                },
+                select: {
+                    slot_type: true
                 }
-            }).then((res) => res.length > 0 ? true : false)
-            .catch(() => false);
+            });
+
+            const exists = slots.length > 0;
+            // Return all slot types for the day
+            const slotTypes = exists ? slots.map(s => s.slot_type) : [];
 
             return new Response(
-                JSON.stringify({ exists: exists }),
+                JSON.stringify({ exists: exists, slot_types: slotTypes }),
                 {
                     status: 200,
                 },

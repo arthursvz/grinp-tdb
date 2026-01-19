@@ -4,66 +4,56 @@ import type { RequestHandler } from "./$types";
 export const POST: RequestHandler = async (event) => {
     const { user_id, slot_id } = await event.request.json();
 
-    const user = event.locals.user;
+    const sessionUser = event.locals.user;
 
-    const can_manage = await prisma.user.findUnique({
-        where: {
-            id: user?.id
-        }
-    }).then((u) => u?.root
-    || (
-            u?.instructor &&
-            (prisma.slot.findUnique({
-                where: {
-                    id: slot_id
-                }
-            }).then((s) => s?.owner_id === user?.id))
-        )
-    );
+    // Permission: root or any current responsible can manage
+    const dbUser = await prisma.user.findUnique({ where: { id: sessionUser?.id } });
+    const slot = await prisma.slot.findUnique({ where: { id: slot_id }, include: { responsibles: true } });
 
-    if (can_manage) {
-        try {
-            await prisma.user.update({
-                where: {
-                    id: user_id,
-                },
-                data: {
-                    attended_slots: {
-                        connect: {
-                            id: slot_id,
-                        },
-                    },
-                },
-            });
+    const can_manage = !!dbUser?.root || !!slot?.responsibles.find(r => r.id === dbUser?.id);
 
-
-            const attendees = await prisma.user.findMany({
-                where: {
-                    attended_slots: {
-                        some: {
-                            id: slot_id,
-                        },
-                    },
-                },
-            });
-
-            return new Response(
-                JSON.stringify({ attendees: attendees }),
-                {
-                    status: 200,
-                },
-            );
-        } catch (error) {
-            console.log(error);
-
-            return new Response(JSON.stringify(error), {
-                status: 400,
-            });
-        }
-    } else {
+    if (!can_manage) {
         return new Response(JSON.stringify("User not logged in or insufficient permissions !"), {
             status: 400,
         });
+    }
+
+    try {
+        // Check if user is already marked attended for the slot
+        const userWithAttendance = await prisma.user.findUnique({
+            where: { id: user_id },
+            include: {
+                attended_slots: {
+                    where: { id: slot_id },
+                    select: { id: true }
+                }
+            }
+        });
+
+        const alreadyPresent = !!userWithAttendance && userWithAttendance.attended_slots.length > 0;
+
+        // Toggle attendance
+        await prisma.user.update({
+            where: { id: user_id },
+            data: {
+                attended_slots: alreadyPresent
+                    ? { disconnect: { id: slot_id } }
+                    : { connect: { id: slot_id } }
+            }
+        });
+
+        const attendees = await prisma.user.findMany({
+            where: {
+                attended_slots: {
+                    some: { id: slot_id }
+                }
+            }
+        });
+
+        return new Response(JSON.stringify({ attendees }), { status: 200 });
+    } catch (error) {
+        console.log(error);
+        return new Response(JSON.stringify(error), { status: 400 });
     }
 };
 

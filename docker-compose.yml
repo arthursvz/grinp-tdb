@@ -2,7 +2,7 @@ services:
   web:
     build: .
     env_file:
-      - .env
+      - .env.docker
     environment:
       DATABASE_URL: postgresql://theobessel:root@db:5432/grinp
       ORIGIN: http://4.233.209.231

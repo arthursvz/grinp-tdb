@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
+    import { Input } from "$lib/components/ui/input";
     import {
       CardContent
     } from "$lib/components/ui/card";
@@ -9,11 +10,42 @@
     import type { User } from "@prisma/client";
     import { createRender, createTable, Render, Subscribe } from "svelte-headless-table";
     import { addPagination } from "svelte-headless-table/plugins";
+    import { writable } from "svelte/store";
     import type { Writable } from "svelte/store";
 
     export let users: Writable<User[]>;
 
-    const table = createTable(users, {
+    let searchQuery = "";
+    let allUsers: User[] = [];
+    let filteredUsersStore = writable<User[]>([]);
+
+    // Get initial users
+    users.subscribe((u) => {
+        allUsers = u;
+        updateFiltered();
+    });
+
+    // Update filtered results when search changes
+    function updateFiltered() {
+        if (searchQuery.trim() === "") {
+            filteredUsersStore.set(allUsers);
+        } else {
+            const query = searchQuery.toLowerCase();
+            const filtered = allUsers.filter((user) => {
+                return (
+                    user.first_name.toLowerCase().includes(query) ||
+                    user.last_name.toLowerCase().includes(query) ||
+                    user.email.toLowerCase().includes(query) ||
+                    (user.churros_uid && user.churros_uid.toLowerCase().includes(query))
+                );
+            });
+            filteredUsersStore.set(filtered);
+        }
+    }
+
+    $: searchQuery, updateFiltered();
+
+    const table = createTable(filteredUsersStore, {
         page: addPagination({
             initialPageSize: 5,
         }),
@@ -74,7 +106,15 @@
 
 <CardContent class="flex flex-col gap-4 pt-6">
 
-    <h2 class="text-base font-semibold">Utilisateurs :</h2>
+    <div class="flex items-center justify-between gap-4">
+        <h2 class="text-base font-semibold">Utilisateurs :</h2>
+        <Input
+            type="text"
+            placeholder="Rechercher par nom, email ou Churros UID..."
+            bind:value={searchQuery}
+            class="max-w-xs"
+        />
+    </div>
 
     <div class="rounded-md border w-full">
         <Table.Root {...$tableAttrs}>
