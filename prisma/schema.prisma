@@ -21,6 +21,9 @@ model User {
   
   root              Boolean     @default(false)
   instructor        Boolean     @default(false)
+  
+  cotisant_as       Boolean     @default(false)
+  cotisant_grinp    Boolean     @default(false)
 
   owned_slots       Slot[]      @relation("Slot owner")
   attended_slots    Slot[]      @relation("Slot attendees")

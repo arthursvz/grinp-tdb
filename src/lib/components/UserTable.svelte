@@ -49,6 +49,14 @@
             header: "Instructor",
         }),
         table.column({
+            accessor: "cotisant_as",
+            header: "Cotisant AS",
+        }),
+        table.column({
+            accessor: "cotisant_grinp",
+            header: "Cotisant Grinp",
+        }),
+        table.column({
             accessor: ({ id }) => id,
             header: "Modifier",
             cell: ({ value }) => {
