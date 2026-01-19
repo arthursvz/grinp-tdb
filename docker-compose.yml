@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://theobessel:root@db:5432/grinp
+      ORIGIN: http://192.168.43.45:3000
+      REDIRECT_URI: http://192.168.43.45:3000/login
+      DEV: true
+    ports:
+      - "3000:3000"
+    depends_on: [db]
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: theobessel
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: grinp
+      PGDATA: /data/postgres
+    #ports:
+    #  - "3030:3030"
+    volumes:
+      - postgres:/data/postgres
+
+volumes:
+  postgres:

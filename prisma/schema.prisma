@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider          = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+}
+
+model User {
+  id                String      @id @unique @default(cuid())
+  churros_uid       String?     @unique
+
+  first_name        String
+  last_name         String
+  email             String      @unique
+  password          String?
+  
+  root              Boolean     @default(false)
+  instructor        Boolean     @default(false)
+
+  owned_slots       Slot[]      @relation("Slot owner")
+  attended_slots    Slot[]      @relation("Slot attendees")
+  slots             Slot[]      @relation("Slot participants")
+
+  sessions          Session[]
+
+  contributions     Contribution[]
+
+  @@index([id])
+}
+
+model Contribution {
+  id                String      @id @unique @default(cuid())
+  type              String      @default("GrINP") // type in ["GrINP", "AsINP"]
+
+  startDate         DateTime
+  expirationDate    DateTime
+
+  amount            Int
+
+  userId            String
+  user              User        @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model Session {
+  id                String      @id @unique @default(cuid())
+  userId            String
+  expiresAt         DateTime
+
+  user              User        @relation(references: [id], fields: [userId], onDelete: Cascade)
+
+  @@index([id])
+}
+
+model Slot {
+  id                String      @id @unique @default(cuid())
+  name              String?
+  description       String?
+
+  starts_at         DateTime
+  ends_at           DateTime
+
+  capacity          Int         @default(18)
+
+  owner_id          String
+  owner             User        @relation("Slot owner", fields: [owner_id], references: [id], onDelete: Cascade)
+  attendees         User[]      @relation("Slot attendees")
+  participants      User[]      @relation("Slot participants")
+
+  @@index([id])
+}
