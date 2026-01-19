@@ -1,6 +1,7 @@
 import prisma from "@/server/prisma";
+import type { RequestEvent } from "@sveltejs/kit";
 
-export const POST = async (event) => {
+export const POST = async (event: RequestEvent) => {
     const user = event.locals.user;
 
     const prisma_user = await prisma.user.findUnique({
