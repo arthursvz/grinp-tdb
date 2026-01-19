@@ -1,0 +1,66 @@
+{
+	"/": [
+		"src/routes/+page.server.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/admin": [
+		"src/routes/(app)/admin/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/api/slots/create": [
+		"src/routes/api/slots/create/+server.ts"
+	],
+	"/api/slots/delete": [
+		"src/routes/api/slots/delete/+server.ts"
+	],
+	"/api/slots/exists": [
+		"src/routes/api/slots/exists/+server.ts"
+	],
+	"/api/slots/subscribe": [
+		"src/routes/api/slots/subscribe/+server.ts"
+	],
+	"/api/slots/unsubscribe": [
+		"src/routes/api/slots/unsubscribe/+server.ts"
+	],
+	"/api/users/attendee": [
+		"src/routes/api/users/attendee/+server.ts"
+	],
+	"/api/users/delete": [
+		"src/routes/api/users/delete/+server.ts"
+	],
+	"/api/users/promote_instructor": [
+		"src/routes/api/users/promote_instructor/+server.ts"
+	],
+	"/(app)/calendar": [
+		"src/routes/(app)/calendar/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/events": [
+		"src/routes/(app)/events/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/instructor": [
+		"src/routes/(app)/instructor/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/login": [
+		"src/routes/(app)/login/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/logout": [
+		"src/routes/(app)/logout/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/register": [
+		"src/routes/(app)/register/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/user/edit": [
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/user/[id]": [
+		"src/routes/(app)/user/[id]/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	]
+}
