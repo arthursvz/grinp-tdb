@@ -1,33 +1,41 @@
-FROM node:22-alpine AS builder
-
-ARG TAG=dev
+# --- STAGE 1 : BUILDER ---
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
-COPY package.json           .
+# Installation OpenSSL
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 
-RUN npm install --loglevel verbose
+# Fix Mémoire
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+COPY package*.json ./
+RUN npm install
 
 COPY . .
 
 RUN npx prisma generate
+RUN npx svelte-kit sync
 RUN npm run build
+RUN npm prune --production
 
-FROM node:22-alpine AS grinp_website
+# --- STAGE 2 : RUNNER ---
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
-COPY --from=builder /app/build      /app/build
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 
-COPY prisma/                prisma/
-COPY entrypoint.sh          .
-COPY package.json           .
-COPY package-lock.json      .
-COPY postcss.config.js      .
-COPY tailwind.config.ts     .
-COPY components.json        .
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-RUN npx prisma generate
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/build ./build
 
-RUN chmod +x entrypoint.sh
-CMD ["./entrypoint.sh"]
+# [CORRECTION] On copie le dossier prisma pour pouvoir faire le db push
+COPY --from=builder /app/prisma ./prisma
+
+EXPOSE 3000
+
+CMD ["node", "build/index.js"]
