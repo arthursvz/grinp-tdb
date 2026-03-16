@@ -2,19 +2,54 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider          = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum SlotType {
   CRENEAU
   EVENEMENT
   FERMETURE
+}
+
+enum BureauRole {
+  BUREAU
+  PRESIDENT
+  VICE_PRESIDENT
+  TRESORIER
+  SECRETAIRE
+  MATERIEL
+}
+
+enum BureauModule {
+  PRESIDENCE
+  VICE_PRESIDENCE
+  TRESORERIE
+  SECRETAIRE
+  MATERIEL
+}
+
+enum AccessLevel {
+  NONE
+  READ
+  WRITE
+}
+
+enum EventStatus {
+  PLANNED
+  ONGOING
+  DONE
+  CANCELLED
+}
+
+enum FinanceType {
+  INCOME
+  EXPENSE
 }
 
 model User {
@@ -25,10 +60,13 @@ model User {
   last_name         String
   email             String      @unique
   password          String?
-  
+
   root              Boolean     @default(false)
   instructor        Boolean     @default(false)
-  
+
+  bureau            Boolean     @default(false)
+  bureau_role       BureauRole?
+
   cotisant_as       Boolean     @default(false)
   cotisant_grinp    Boolean     @default(false)
 
@@ -37,53 +75,206 @@ model User {
   attended_slots    Slot[]      @relation("Slot attendees")
   slots             Slot[]      @relation("Slot participants")
 
-  sessions          Session[]
+  responsible_events ClubEvent[] @relation("EventResponsibles")
 
+  sessions          Session[]
   contributions     Contribution[]
+
+  climbing_sessions ClimbingSession[]
+
+  logs              Log[]       @relation("UserLogs")
+  infos             Info[]      @relation("InfoAuthor")
 
   @@index([id])
 }
 
+model BureauPermission {
+  id      String       @id @default(cuid())
+  role    BureauRole
+  module  BureauModule
+  access  AccessLevel
+
+  @@unique([role, module])
+}
+
+model ActionPermission {
+  id     String       @id @default(cuid())
+  role   BureauRole
+  action String
+  access AccessLevel
+
+  @@unique([role, action])
+}
+
+model InventoryItem {
+  id               String   @id @default(cuid())
+  name             String
+  brand            String?
+  status           String?
+  quantity         Int      @default(1)
+  acquiredYear     Int?
+  manufacturedYear Int?
+  expirationYear   Int?
+  photoUrl         String?
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ClubEvent {
+  id           String      @id @default(cuid())
+  title        String
+  status       EventStatus @default(PLANNED)
+  date         DateTime?
+  notes        String?     @db.Text
+  responsibles User[]      @relation("EventResponsibles")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Meeting {
+  id         String   @id @default(cuid())
+  title      String
+  date       DateTime
+  attendees  String?  @db.Text
+  minutes    String?  @db.Text
+  fileUrl    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model FinanceEntry {
+  id        String      @id @default(cuid())
+  label     String
+  amount    Decimal @db.Decimal(10, 2)
+  type      FinanceType
+  category  String?
+  date      DateTime
+  notes     String?     @db.Text
+  justificatifUrl String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
 model Contribution {
-  id                String      @id @unique @default(cuid())
-  type              String      @default("GrINP") // type in ["GrINP", "AsINP"]
+  id             String   @id @unique @default(cuid())
+  type           String   @default("GrINP")
 
-  startDate         DateTime
-  expirationDate    DateTime
+  startDate      DateTime
+  expirationDate DateTime
 
-  amount            Int
+  amount         Int
 
-  userId            String
-  user              User        @relation(references: [id], fields: [userId], onDelete: Cascade)
+  userId         String
+  user           User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 model Session {
-  id                String      @id @unique @default(cuid())
-  userId            String
-  expiresAt         DateTime
-
-  user              User        @relation(references: [id], fields: [userId], onDelete: Cascade)
-
+  id        String   @id @unique @default(cuid())
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
   @@index([id])
 }
 
 model Slot {
-  id                String      @id @unique @default(cuid())
-  name              String?
-  description       String?
+  id           String   @id @unique @default(cuid())
+  name         String?
+  description  String?
+  starts_at    DateTime
+  ends_at      DateTime
+  slot_type    SlotType @default(CRENEAU)
+  capacity     Int      @default(18)
+  owner_id     String
+  owner        User     @relation("Slot owner", fields: [owner_id], references: [id], onDelete: Cascade)
+  responsibles User[]   @relation("Slot responsibles")
+  attendees    User[]   @relation("Slot attendees")
+  participants User[]   @relation("Slot participants")
 
-  starts_at         DateTime
-  ends_at           DateTime
-
-  slot_type         SlotType    @default(CRENEAU)
-
-  capacity          Int         @default(18)
-
-  owner_id          String
-  owner             User        @relation("Slot owner", fields: [owner_id], references: [id], onDelete: Cascade)
-  responsibles      User[]      @relation("Slot responsibles")
-  attendees         User[]      @relation("Slot attendees")
-  participants      User[]      @relation("Slot participants")
-
+  climbing_sessions ClimbingSession[]
   @@index([id])
+}
+
+model ClimbingRoute {
+  id        String   @id @default(cuid())
+  name      String
+  relay     String
+  color     String
+  grade     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attempts  ClimbingAttempt[]
+}
+
+model ClimbingSession {
+  id             String   @id @default(cuid())
+  userId         String
+  slotId         String?
+  date           DateTime
+  durationMinutes Int?
+  feeling        String?  @db.Text
+  isExternal     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slot           Slot?    @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  attempts       ClimbingAttempt[]
+
+  @@index([userId])
+  @@index([slotId])
+}
+
+model ClimbingAttempt {
+  id         String   @id @default(cuid())
+  sessionId  String
+  routeId    String
+  success    Boolean  @default(false)
+  completion Int      @default(100)
+  createdAt  DateTime @default(now())
+
+  session    ClimbingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  route      ClimbingRoute   @relation(fields: [routeId], references: [id])
+
+  @@index([sessionId])
+  @@index([routeId])
+}
+
+model DailyBeta {
+  id         String   @id @default(cuid())
+  content    String   @db.Text
+  is_special Boolean  @default(false)
+  created_at DateTime @default(now())
+}
+
+model GlobalAlert {
+  id        String   @id @default(cuid())
+  message   String
+  active    Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?
+  target    String?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation("UserLogs", fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Info {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  link      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId  String
+  author    User     @relation("InfoAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 }

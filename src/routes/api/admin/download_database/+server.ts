@@ -1,20 +1,19 @@
 import { env } from "$env/dynamic/private";
 import prisma from "@/server/prisma";
+import { logger } from "$lib/server/logger"; // <--- IMPORT AJOUTÉ
 import type { RequestEvent } from "@sveltejs/kit";
+import { requireActionWrite } from "$lib/server/bureau-access";
 
 export const GET = async (event: RequestEvent) => {
     const user = event.locals.user;
-    
+
     if (!user?.id) {
         return new Response(JSON.stringify({ ok: false, error: "Not authenticated" }), { status: 401 });
     }
 
-    const prismaUser = await prisma.user.findUnique({
-        where: { id: user.id }
-    });
-
-    if (!prismaUser?.root) {
-        return new Response(JSON.stringify({ ok: false, error: "Insufficient permissions" }), { status: 403 });
+    const access = await requireActionWrite(user?.id, "database.export");
+    if (!access.ok) {
+        return new Response(JSON.stringify({ ok: false, error: access.error }), { status: access.status });
     }
 
     try {
@@ -23,16 +22,32 @@ export const GET = async (event: RequestEvent) => {
         const slots = await prisma.slot.findMany();
         const sessions = await prisma.session.findMany();
         const contributions = await prisma.contribution.findMany();
+        const climbingRoutes = await prisma.climbingRoute.findMany();
+        const climbingSessions = await prisma.climbingSession.findMany();
+        const climbingAttempts = await prisma.climbingAttempt.findMany();
 
         const backup = {
             timestamp: new Date().toISOString(),
             users,
             slots,
             sessions,
-            contributions
+            contributions,
+            climbingRoutes,
+            climbingSessions,
+            climbingAttempts
         };
 
         const sql = generateSQL(backup);
+
+        // --- LOG AJOUTÉ ---
+        // On trace qui a téléchargé la base et quand
+        await logger.log(
+            user.id, 
+            "DOWNLOAD_DATABASE", 
+            "Export complet SQL de la base de données", 
+            "SYSTEM_WIDE"
+        );
+        // ------------------
 
         return new Response(sql, {
             status: 200,
@@ -73,10 +88,27 @@ function generateSQL(backup: any): string {
         sql += `VALUES ('${escapeSql(contrib.id)}', '${escapeSql(contrib.type)}', '${contrib.startDate}', '${contrib.expirationDate}', ${contrib.amount}, '${escapeSql(contrib.userId)}');\n`;
     });
 
+    sql += `\n-- ClimbingRoute\n`;
+    backup.climbingRoutes.forEach((route: any) => {
+        sql += `INSERT INTO "ClimbingRoute" (id, name, relay, color, grade, active, "createdAt", "updatedAt") `;
+        sql += `VALUES ('${escapeSql(route.id)}', '${escapeSql(route.name)}', '${escapeSql(route.relay)}', '${escapeSql(route.color)}', '${escapeSql(route.grade)}', ${route.active}, '${route.createdAt}', '${route.updatedAt}');\n`;
+    });
+
+    sql += `\n-- ClimbingSession\n`;
+    backup.climbingSessions.forEach((session: any) => {
+        sql += `INSERT INTO "ClimbingSession" (id, "userId", "slotId", date, "durationMinutes", feeling, "isExternal", "createdAt", "updatedAt") `;
+        sql += `VALUES ('${escapeSql(session.id)}', '${escapeSql(session.userId)}', ${session.slotId ? `'${escapeSql(session.slotId)}'` : 'NULL'}, '${session.date}', ${session.durationMinutes ?? 'NULL'}, ${session.feeling ? `'${escapeSql(session.feeling)}'` : 'NULL'}, ${session.isExternal}, '${session.createdAt}', '${session.updatedAt}');\n`;
+    });
+
+    sql += `\n-- ClimbingAttempt\n`;
+    backup.climbingAttempts.forEach((attempt: any) => {
+        sql += `INSERT INTO "ClimbingAttempt" (id, "sessionId", "routeId", success, completion, "createdAt") `;
+        sql += `VALUES ('${escapeSql(attempt.id)}', '${escapeSql(attempt.sessionId)}', '${escapeSql(attempt.routeId)}', ${attempt.success}, ${attempt.completion}, '${attempt.createdAt}');\n`;
+    });
+
     return sql;
 }
 
 function escapeSql(str: string): string {
     return str.replace(/'/g, "''");
 }
-

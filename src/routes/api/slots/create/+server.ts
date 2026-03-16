@@ -1,5 +1,6 @@
 import { slotScheme } from "@/index";
 import prisma from "@/server/prisma";
+import { logger } from "$lib/server/logger"; // <--- IMPORT AJOUTÉ
 import { SlotType } from "@prisma/client";
 import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
@@ -27,22 +28,18 @@ export const POST: RequestHandler = async (event) => {
     if (prisma_user?.instructor || prisma_user?.root) {
         const user_id = prisma_user.id;
 
-        // Create the slot
         try {
-            // Parse the date correctly in ISO format YYYY-MM-DD
             const [startHour, startMin] = form.date.starts_at.split(':');
             const [endHour, endMin] = form.date.ends_at.split(':');
-            
+
             const starts_date = new Date(`${today}T${form.date.starts_at}:00`);
             const ends_date = new Date(`${today}T${form.date.ends_at}:00`);
 
-            // Normalize to start/end of day for the same day check
             const startOfDay = new Date(today);
             startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(startOfDay);
             endOfDay.setHours(23, 59, 59, 999);
 
-            // Check existing slots for this day
             const existingSlots = await prisma.slot.findMany({
                 where: {
                     starts_at: {
@@ -52,7 +49,6 @@ export const POST: RequestHandler = async (event) => {
                 },
             });
 
-            // 1. Check if there are already 3 slots
             if (existingSlots.length >= 3) {
                 return new Response(
                     JSON.stringify({ message: "Maximum de 3 créneaux par jour atteint." }),
@@ -60,7 +56,6 @@ export const POST: RequestHandler = async (event) => {
                 );
             }
 
-            // 2. Check if a FERMETURE slot exists
             const hasClosureSlot = existingSlots.some(s => s.slot_type === SlotType.FERMETURE);
             if (hasClosureSlot) {
                 return new Response(
@@ -69,12 +64,9 @@ export const POST: RequestHandler = async (event) => {
                 );
             }
 
-            // 3. Check for time overlap
             const hasOverlap = existingSlots.some(s => {
                 const existingStart = new Date(s.starts_at);
                 const existingEnd = new Date(s.ends_at);
-                
-                // Check if new slot overlaps with existing slot
                 return (
                     (starts_date >= existingStart && starts_date < existingEnd) ||
                     (ends_date > existingStart && ends_date <= existingEnd) ||
@@ -93,48 +85,40 @@ export const POST: RequestHandler = async (event) => {
                 data: {
                     name: form.title,
                     description: form.description,
-            
                     starts_at: starts_date,
                     ends_at: ends_date,
-
                     capacity: form.capacity,
-                    // Création côté initiateur : toujours un créneau standard
                     slot_type: SlotType.CRENEAU,
-            
                     owner: {
-                        connect: {
-                            id: user_id,
-                        },
+                        connect: { id: user_id },
                     },
                     responsibles: {
-                        connect: {
-                            id: user_id,
-                        },
+                        connect: { id: user_id },
                     },
                     participants: {
-                        connect: {
-                            id: user_id,
-                        }
+                        connect: { id: user_id }
                     },
                 },
             });
+
+            // --- LOG AJOUTÉ ---
+            await logger.log(
+                user_id, 
+                "CREATE_SLOT", 
+                `Date: ${starts_date.toLocaleDateString()} ${form.date.starts_at}`, 
+                `SlotID: ${slot.id}`
+            );
+            // ------------------
 
             return new Response(
                 JSON.stringify({ slot: slot}),
-                {
-                    status: 200,
-                },
+                { status: 200 },
             );
         } catch (error) {
             console.log(error);
-
-            return new Response(JSON.stringify(error), {
-                status: 400,
-            });
+            return new Response(JSON.stringify(error), { status: 400 });
         }
     } else {
-        return new Response(JSON.stringify("User not logged in or insufficient permissions !"), {
-            status: 400,
-        });
+        return new Response(JSON.stringify("User not logged in or insufficient permissions !"), { status: 400 });
     }
 };

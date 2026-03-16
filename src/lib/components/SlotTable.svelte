@@ -4,17 +4,26 @@
     import {
       CardContent
     } from "$lib/components/ui/card";
-    import CardFooter from "@/components/ui/card/card-footer.svelte";
     import * as Table from "@/components/ui/table/";
     import type { Slot, User } from "@prisma/client";
     import { createRender, createTable, Render, Subscribe } from "svelte-headless-table";
-    import { addPagination } from "svelte-headless-table/plugins";
     import { writable } from "svelte/store";
     import type { Writable } from "svelte/store";
     import SlotManagement from "./SlotManagement.svelte";
 
     export let slots: Writable<Slot[]>;
     export let users: Writable<User[]>;
+    export let canWrite = false;
+    export let canEditDetails = false;
+    export let canEditCapacity = false;
+    export let canEditResponsibles = false;
+    export let canEditType = false;
+    export let canDelete = false;
+    export let rootBypassEditDetails = false;
+    export let rootBypassEditCapacity = false;
+    export let rootBypassEditResponsibles = false;
+    export let rootBypassEditType = false;
+    export let rootBypassDelete = false;
 
     let searchQuery = "";
     let allSlots: Slot[] = [];
@@ -26,29 +35,49 @@
         updateFiltered();
     });
 
+    function normalize(text: string) {
+        return text
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+    }
+
+    function slotSearchText(slot: Slot) {
+        const responsibles = (slot as any).responsibles as User[] | undefined;
+        const responsiblesLabel = responsibles?.length
+            ? responsibles.map((u) => `${u.first_name} ${u.last_name}`).join(" ")
+            : "";
+        const owner = $users.find((user) => user.id === slot.owner_id);
+        const ownerLabel = owner ? `${owner.first_name} ${owner.last_name}` : "";
+        return [
+            slot.id,
+            slot.name ?? "",
+            slot.description ?? "",
+            slot.slot_type ?? "",
+            slot.capacity?.toString() ?? "",
+            new Date(slot.starts_at).toLocaleString("fr-FR"),
+            new Date(slot.ends_at).toLocaleString("fr-FR"),
+            responsiblesLabel,
+            ownerLabel,
+        ].join(" ");
+    }
+
     // Update filtered results when search changes
     function updateFiltered() {
-        if (searchQuery.trim() === "") {
+        const query = normalize(searchQuery);
+        if (!query) {
             filteredSlotsStore.set(allSlots);
-        } else {
-            const query = searchQuery.toLowerCase();
-            const filtered = allSlots.filter((slot) => {
-                return (
-                    (slot.name && slot.name.toLowerCase().includes(query)) ||
-                    (slot.description && slot.description.toLowerCase().includes(query))
-                );
-            });
-            filteredSlotsStore.set(filtered);
+            return;
         }
+
+        const filtered = allSlots.filter((slot) => normalize(slotSearchText(slot)).includes(query));
+        filteredSlotsStore.set(filtered);
     }
 
     $: searchQuery, updateFiltered();
 
-    const table = createTable(filteredSlotsStore, {
-        page: addPagination({
-            initialPageSize: 5,
-        }),
-    });
+    const table = createTable(filteredSlotsStore);
 
     const columns = table.createColumns([
         table.column({
@@ -99,18 +128,29 @@
         }),
         table.column({
             accessor: ({ id }) => id,
-            header: "Modifier",
+            header: "Actions",
             cell: ({ value }) => {
-                return createRender(SlotManagement, { id: value });
+                return createRender(SlotManagement, {
+                    id: value,
+                    users: $users,
+                    canWrite,
+                    canEditDetails,
+                    canEditCapacity,
+                    canEditResponsibles,
+                    canEditType,
+                    canDelete,
+                    rootBypassEditDetails,
+                    rootBypassEditCapacity,
+                    rootBypassEditResponsibles,
+                    rootBypassEditType,
+                    rootBypassDelete,
+                });
             },
         }),
     ]);
 
-    const { headerRows, pageRows, tableAttrs, tableBodyAttrs, pluginStates } =
+    const { headerRows, rows, tableAttrs, tableBodyAttrs } =
         table.createViewModel(columns);
-
-    const { hasNextPage, hasPreviousPage, pageIndex, pageCount } =
-        pluginStates.page;
 </script>
 
 <CardContent class="flex flex-col gap-4 pt-6">
@@ -119,13 +159,13 @@
         <h2 class="text-base font-semibold">Créneaux :</h2>
         <Input
             type="text"
-            placeholder="Rechercher par nom ou description..."
+            placeholder="Rechercher sur tous les champs..."
             bind:value={searchQuery}
             class="max-w-xs"
         />
     </div>
 
-    <div class="rounded-md border w-full">
+    <div class="rounded-md border w-full max-h-[30rem] overflow-y-auto">
         <Table.Root {...$tableAttrs}>
             <Table.Header>
                 {#each $headerRows as headerRow}
@@ -147,7 +187,7 @@
                 {/each}
             </Table.Header>
             <Table.Body {...$tableBodyAttrs}>
-                {#each $pageRows as row (row.id)}
+                {#each $rows as row (row.id)}
                     <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
                         <Table.Row {...rowAttrs}>
                             {#each row.cells as cell (cell.id)}
@@ -164,29 +204,3 @@
         </Table.Root>
     </div>
 </CardContent>
-
-<div class="relative">
-    <div class="absolute inset-0 flex items-center">
-        <span class="w-full border-t" />
-    </div>
-</div>
-
-<CardFooter>
-    <div class="flex items-center justify-end space-x-4 py-4">
-        <Button
-            variant="outline"
-            size="sm"
-            on:click={() => ($pageIndex = $pageIndex - 1)}
-            disabled={!$hasPreviousPage}>Previous</Button
-        >
-        <span class="text-gray-500"
-            >Page {$pageIndex + 1} / {$pageCount}</span
-        >
-        <Button
-            variant="outline"
-            size="sm"
-            disabled={!$hasNextPage}
-            on:click={() => ($pageIndex = $pageIndex + 1)}>Next</Button
-        >
-    </div>
-</CardFooter>

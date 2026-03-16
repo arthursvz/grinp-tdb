@@ -1,43 +1,51 @@
+import { slotScheme } from "@/index";
 import prisma from "@/server/prisma";
-import { SlotType } from "@prisma/client";
+import { logger } from "$lib/server/logger";
+import { superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async (event) => {
-    const { slot_id, name, description, capacity, starts_at, ends_at, slot_type } = await event.request.json();
+    const { form, today, slot_id } = await event.request.json();
+    const result = await superValidate(form, zod(slotScheme));
 
-    const sessionUser = event.locals.user;
-    const dbUser = await prisma.user.findUnique({ where: { id: sessionUser?.id } });
+    if (!result.valid) {
+        return new Response(JSON.stringify("Form invalid"), { status: 400 });
+    }
 
+    const user = event.locals.user;
+    const prisma_user = await prisma.user.findUnique({ where: { id: user?.id } });
     const slot = await prisma.slot.findUnique({ where: { id: slot_id } });
-    if (!slot) {
-        return new Response(JSON.stringify({ error: "Slot not found" }), { status: 404 });
-    }
+    const isOwner = prisma_user?.instructor && slot?.owner_id === prisma_user.id;
 
-    // Permission: root or the slot owner (instructor)
-    const can_manage = !!dbUser?.root || (!!dbUser?.instructor && slot.owner_id === dbUser.id);
-    if (!can_manage) {
-        return new Response(JSON.stringify("Insufficient permissions"), { status: 403 });
-    }
+    if (prisma_user?.root || isOwner) {
+        try {
+            const starts_date = new Date(`${today}T${form.date.starts_at}:00`);
+            const ends_date = new Date(`${today}T${form.date.ends_at}:00`);
 
-    try {
-        const data: any = {};
-        if (typeof name === "string") data.name = name;
-        if (typeof description === "string") data.description = description;
-        if (typeof capacity === "number") data.capacity = capacity;
-        if (typeof starts_at === "string") data.starts_at = new Date(starts_at);
-        if (typeof ends_at === "string") data.ends_at = new Date(ends_at);
-        if (typeof slot_type === "string" && Object.values(SlotType).includes(slot_type as SlotType)) {
-            data.slot_type = slot_type as SlotType;
+            await prisma.slot.update({
+                where: { id: slot_id },
+                data: {
+                    name: form.title,
+                    description: form.description,
+                    starts_at: starts_date,
+                    ends_at: ends_date,
+                    capacity: form.capacity,
+                    slot_type: result.data.slot_type, // Enregistrement du type
+                },
+            });
+
+            await logger.log(
+                prisma_user.id,
+                "UPDATE_SLOT",
+                `Modif: ${form.title} (${result.data.slot_type})`,
+                `SlotID: ${slot_id}`
+            );
+
+            return new Response(JSON.stringify({ success: true }), { status: 200 });
+        } catch (error) {
+            return new Response(JSON.stringify(error), { status: 400 });
         }
-
-        const updated = await prisma.slot.update({
-            where: { id: slot_id },
-            data
-        });
-
-        return new Response(JSON.stringify({ slot: updated }), { status: 200 });
-    } catch (error) {
-        console.log(error);
-        return new Response(JSON.stringify(error), { status: 400 });
     }
+    return new Response(JSON.stringify("Non autorisé"), { status: 403 });
 };

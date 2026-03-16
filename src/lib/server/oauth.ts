@@ -1,11 +1,10 @@
 import { env } from "$env/dynamic/private";
 import { ChurrosClient } from "@inp-net/churros-client";
 
-
 export const churros = new ChurrosClient({
-    client_id: env.CHURROS_CLIENT_ID,
-    client_secret: env.CHURROS_CLIENT_SECRET,
-    redirect_uri: (process.env.NODE_ENV === "development" ? "http://localhost:5173" : process.env.ORIGIN) + "/login"
+    client_id: "SXMYKbiYioYvmz8w1JB7qhkxLRtsqRyeB8996VCW",
+    client_secret: "Bo6aD0SFh7QsyyA4IFDmXp5nofIsqwCRJ4NC8q3uhniEVYmKfnJut0S7239dBsxnA69gqacEuJAUAu2xdYIlithki1ZqCvZ4ks5tYnTDa7pCrSY27v6KhkAcOugJ38JB",
+    redirect_uri: "https://grinp.inpt.fr/login"
 });
 
 export async function generateState() : Promise<string> {

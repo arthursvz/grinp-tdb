@@ -1,5 +1,3 @@
-// place files you want to import through the `$lib` alias in this folder.
-
 import { z } from "zod";
 
 export const loginScheme = z.object({
@@ -18,14 +16,15 @@ export const registerScheme = z.object({
     path: ["confirmPassword"],
 });
 
-// TODO : add date range check
 export const slotScheme = z.object({
     title: z.string().min(5),
     description: z.string().min(5),
     capacity: z.number().int().positive(),
+    // Ajout crucial pour autoriser le changement de type
+    slot_type: z.enum(["CRENEAU", "EVENEMENT", "FERMETURE"]), 
     date: z.object({
-        starts_at: z.string().min(1).regex(/^[0-9]{2}:[0-9]{2}$/),//z.date(),
-        ends_at: z.string().min(1).regex(/^[0-9]{2}:[0-9]{2}$/),//z.date(),
+        starts_at: z.string().min(1).regex(/^[0-9]{2}:[0-9]{2}$/),
+        ends_at: z.string().min(1).regex(/^[0-9]{2}:[0-9]{2}$/),
     })
 });
 

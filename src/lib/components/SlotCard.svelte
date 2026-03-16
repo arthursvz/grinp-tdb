@@ -10,7 +10,7 @@
     import { Input } from "$lib/components/ui/input";
 
     import type { Slot, User } from "@prisma/client";
-    
+
     import { getFlash } from "sveltekit-flash-message";
     import { page } from "$app/stores";
     import { superForm } from "sveltekit-superforms";
@@ -18,7 +18,11 @@
     import { slotScheme } from "..";
 
     import SingleSlotCard from "./SingleSlotCard.svelte";
-  
+    
+    // Imports pour la mise à jour fluide
+    import { invalidateAll } from "$app/navigation";
+    import { toast } from "svelte-sonner";
+
     const flash = getFlash(page, {
         clearOnNavigate: true,
         clearAfterMs: 10,
@@ -44,6 +48,8 @@
     $: slots = data.slots || [];
     $: canCreateMore = slots.length < 3 && (user.instructor || user.root);
     $: hasClosureSlot = slots.some(s => s.slot.slot_type === 'FERMETURE');
+    $: rootBypassCreate = user.root && !user.instructor;
+    const adminBypassLabel = "Admin bypass";
 
     let showCreateMoreForm = false;
     let showCreateFirstForm = false;
@@ -57,18 +63,8 @@
 
     async function create_slot(event: Event) {
         event.preventDefault();
-        
-        type form = {
-            title: string;
-            description: string;
-            date: {
-                starts_at: string;
-                ends_at: string;
-            };
-            capacity: number;
-        };
 
-        const localFormData: form = {
+        const localFormData = {
             title: $formData.title,
             description: $formData.description,
             date: $formData.date,
@@ -83,41 +79,28 @@
                 },
                 body: JSON.stringify({ form: localFormData, today: slotDate }),
             });
-            
+
             if (create.status == 200) {
-                try {
-                    const response = await create.json();
-                    $flash = {
-                        type: "success",
-                        message: "Le créneau a bien été créé !",
-                    };
-                    window.location.reload();
-                } catch (error) {
-                    console.error(error);
-                    $flash = {
-                        type: "error",
-                        message: "Une erreur est survenue.",
-                    };
-                }
+                toast.success("Le créneau a bien été créé !");
+                
+                // On ferme les formulaires
+                showCreateMoreForm = false;
+                showCreateFirstForm = false;
+                
+                // Rafraîchissement des données sans recharger la page
+                await invalidateAll();
             } else {
                 const errorData = await create.json();
-                $flash = {
-                    type: "error",
-                    message: errorData.message || "Erreur lors de la création du créneau.",
-                };
+                toast.error(errorData.message || "Erreur lors de la création.");
             }
         } catch (error) {
             console.error(error);
-            $flash = {
-                type: "error",
-                message: "Veuillez vérifier les informations saisies.",
-            };
+            toast.error("Veuillez vérifier les informations saisies.");
         }
     }
 </script>
 
 {#if slots.length > 0}
-    <!-- Display all slots the user can manage or participate in -->
     {#each slots as slotData (slotData.slot.id)}
         <SingleSlotCard
             slot={slotData.slot}
@@ -129,28 +112,29 @@
         />
     {/each}
 
-    <!-- Add new slot button for instructors if less than 3 slots and no closure -->
     {#if canCreateMore && !hasClosureSlot}
         <Card class="flex flex-col justify-between w-full">
             <div class="p-4 cursor-pointer hover:bg-black hover:bg-opacity-5 transition-colors" on:click={() => (showCreateMoreForm = !showCreateMoreForm)} role="button" tabindex="0" on:keydown={(e) => e.key === 'Enter' && (showCreateMoreForm = !showCreateMoreForm)}>
                 <div class="flex items-center justify-between">
-                    <div class="font-semibold text-lg">Créer un autre créneau</div>
+                    <div class="flex items-center gap-2">
+                        <div class="font-semibold text-lg">Créer un autre créneau</div>
+                        {#if rootBypassCreate}
+                            <span class="inline-flex items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
+                                {adminBypassLabel}
+                            </span>
+                        {/if}
+                    </div>
                     <span class="text-lg">{showCreateMoreForm ? '▼' : '▶'}</span>
                 </div>
             </div>
             {#if showCreateMoreForm}
                 <form method="POST" on:submit|preventDefault={create_slot} use:enhance>
-                    <div class="px-4 flex flex-col gap-4">
+                    <div class="px-4 flex flex-col gap-4 pb-4">
                         <div class="flex gap-4">
                             <Form.Field {form} name="title" class="w-full">
                                 <Form.Control let:attrs>
                                     <Form.Label>Titre du créneau</Form.Label>
-                                    <Input
-                                        type="text"
-                                        {...attrs}
-                                        bind:value={$formData.title}
-                                        placeholder="Titre du créneau"
-                                    />
+                                    <Input type="text" {...attrs} bind:value={$formData.title} placeholder="Titre du créneau" />
                                 </Form.Control>
                                 <Form.FieldErrors />
                             </Form.Field>
@@ -158,26 +142,16 @@
                             <Form.Field {form} name="capacity">
                                 <Form.Control let:attrs>
                                     <Form.Label>Capacité</Form.Label>
-                                    <Input
-                                        type="number"
-                                        {...attrs}
-                                        on:change={e => $formData.capacity = parseInt(e.currentTarget.value)}
-                                        placeholder="Capacité"
-                                    />
+                                    <Input type="number" {...attrs} on:change={e => $formData.capacity = parseInt(e.currentTarget.value)} placeholder="Capacité" />
                                 </Form.Control>
                                 <Form.FieldErrors />
                             </Form.Field>
                         </div>
-                
+
                         <Form.Field {form} name="description" class="w-full">
                             <Form.Control let:attrs>
                                 <Form.Label>Description</Form.Label>
-                                <Input
-                                    type="text"
-                                    {...attrs}
-                                    bind:value={$formData.description}
-                                    placeholder="Description"
-                                />
+                                <Input type="text" {...attrs} bind:value={$formData.description} placeholder="Description" />
                             </Form.Control>
                             <Form.FieldErrors />
                         </Form.Field>
@@ -187,52 +161,50 @@
                                 <Form.Control let:attrs>
                                     <Form.Label>Dates</Form.Label>
                                     <div class="flex gap-4 items-center">
-                                        De
-                                        <Input
-                                            type="time"
-                                            {...attrs}
-                                            bind:value={$formData.date.starts_at}
-                                        />
-                                        à
-                                        <Input
-                                            type="time"
-                                            {...attrs}
-                                            bind:value={$formData.date.ends_at}
-                                        />
+                                        De <Input type="time" {...attrs} bind:value={$formData.date.starts_at} />
+                                        à <Input type="time" {...attrs} bind:value={$formData.date.ends_at} />
                                     </div>
                                 </Form.Control>
                                 <Form.FieldErrors />
                             </Form.Field>
                         </div>
-                
-                        <Form.Button>Créer le créneau</Form.Button>
+
+                        <div class="flex items-center gap-2">
+                            <Button type="submit">Créer le créneau</Button>
+                            {#if rootBypassCreate}
+                                <span class="inline-flex items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
+                                    {adminBypassLabel}
+                                </span>
+                            {/if}
+                        </div>
                     </div>
                 </form>
             {/if}
         </Card>
     {/if}
 {:else if (user.instructor || user.root)}
-    <!-- No slots exist, show creation form -->
     <Card class="flex flex-col justify-between w-full">
         <div class="p-4 cursor-pointer hover:bg-black hover:bg-opacity-5 transition-colors" on:click={() => (showCreateFirstForm = !showCreateFirstForm)} role="button" tabindex="0" on:keydown={(e) => e.key === 'Enter' && (showCreateFirstForm = !showCreateFirstForm)}>
             <div class="flex items-center justify-between">
-                <div class="font-semibold text-lg">Créer un créneau</div>
+                <div class="flex items-center gap-2">
+                    <div class="font-semibold text-lg">Créer un créneau</div>
+                    {#if rootBypassCreate}
+                        <span class="inline-flex items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
+                            {adminBypassLabel}
+                        </span>
+                    {/if}
+                </div>
                 <span class="text-lg">{showCreateFirstForm ? '▼' : '▶'}</span>
             </div>
         </div>
         {#if showCreateFirstForm}
             <form method="POST" on:submit|preventDefault={create_slot} use:enhance>
-                <div class="px-4 flex flex-col gap-4">
+                <div class="px-4 flex flex-col gap-4 pb-4">
                     <div class="flex gap-4">
                         <Form.Field {form} name="title" class="w-full">
                             <Form.Control let:attrs>
                                 <Form.Label>Titre du créneau</Form.Label>
-                                <Input
-                                    type="text"
-                                    {...attrs}
-                                    bind:value={$formData.title}
-                                    placeholder="Titre du créneau"
-                                />
+                                <Input type="text" {...attrs} bind:value={$formData.title} placeholder="Titre du créneau" />
                             </Form.Control>
                             <Form.FieldErrors />
                         </Form.Field>
@@ -240,26 +212,16 @@
                         <Form.Field {form} name="capacity">
                             <Form.Control let:attrs>
                                 <Form.Label>Capacité</Form.Label>
-                                <Input
-                                    type="number"
-                                    {...attrs}
-                                    on:change={e => $formData.capacity = parseInt(e.currentTarget.value)}
-                                    placeholder="Capacité"
-                                />
+                                <Input type="number" {...attrs} on:change={e => $formData.capacity = parseInt(e.currentTarget.value)} placeholder="Capacité" />
                             </Form.Control>
                             <Form.FieldErrors />
                         </Form.Field>
                     </div>
-            
+
                     <Form.Field {form} name="description" class="w-full">
                         <Form.Control let:attrs>
                             <Form.Label>Description</Form.Label>
-                            <Input
-                                type="text"
-                                {...attrs}
-                                bind:value={$formData.description}
-                                placeholder="Description"
-                            />
+                            <Input type="text" {...attrs} bind:value={$formData.description} placeholder="Description" />
                         </Form.Control>
                         <Form.FieldErrors />
                     </Form.Field>
@@ -269,25 +231,22 @@
                             <Form.Control let:attrs>
                                 <Form.Label>Dates</Form.Label>
                                 <div class="flex gap-4 items-center">
-                                    De
-                                    <Input
-                                        type="time"
-                                        {...attrs}
-                                        bind:value={$formData.date.starts_at}
-                                    />
-                                    à
-                                    <Input
-                                        type="time"
-                                        {...attrs}
-                                        bind:value={$formData.date.ends_at}
-                                    />
+                                    De <Input type="time" {...attrs} bind:value={$formData.date.starts_at} />
+                                    à <Input type="time" {...attrs} bind:value={$formData.date.ends_at} />
                                 </div>
                             </Form.Control>
                             <Form.FieldErrors />
                         </Form.Field>
                     </div>
-            
-                    <Form.Button>Créer le créneau</Form.Button>
+
+                    <div class="flex items-center gap-2">
+                        <Button type="submit">Créer le créneau</Button>
+                        {#if rootBypassCreate}
+                            <span class="inline-flex items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
+                                {adminBypassLabel}
+                            </span>
+                        {/if}
+                    </div>
                 </div>
             </form>
         {/if}

@@ -1,5 +1,5 @@
 <script>
-    import { attendees } from "@/stores";
+    import { attendees } from "$lib/stores";
 
 
     export let userId;

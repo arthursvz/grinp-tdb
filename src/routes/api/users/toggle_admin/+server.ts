@@ -1,4 +1,5 @@
 import prisma from "@/server/prisma";
+import { logger } from "$lib/server/logger"; // <--- IMPORT AJOUTÉ
 import type { RequestEvent } from "@sveltejs/kit";
 
 export const POST = async (event: RequestEvent) => {
@@ -26,6 +27,15 @@ export const POST = async (event: RequestEvent) => {
             where: { id: user_id },
             data: { root: !targetUser?.root }
         });
+
+        // --- LOG AJOUTÉ ---
+        await logger.log(
+            prisma_user.id, 
+            "TOGGLE_ROOT", 
+            `Nouveau statut root : ${!targetUser?.root}`, 
+            `TargetUser: ${user_id}`
+        );
+        // ------------------
 
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
     } catch (error) {

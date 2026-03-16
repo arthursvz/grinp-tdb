@@ -22,12 +22,13 @@ export const POST: RequestHandler = async (event) => {
             });
         }
 
-        // Get all slots where user is participant
+        // 1. STATS GRIMPEUR (Filtré : Pas de FERMETURE)
         const participantSlots = await prisma.slot.findMany({
             where: {
                 participants: {
                     some: { id: user_id }
-                }
+                },
+                slot_type: { not: "FERMETURE" } // <--- Exclu ici
             },
             include: {
                 participants: true,
@@ -35,10 +36,13 @@ export const POST: RequestHandler = async (event) => {
             }
         });
 
-        // Get all slots where user is owner/responsible
-        const ownerSlots = await prisma.slot.findMany({
+        // 2. STATS ENCADRANT (Filtré : Pas de FERMETURE + Responsable)
+        const responsibleSlots = await prisma.slot.findMany({
             where: {
-                owner_id: user_id
+                responsibles: {
+                    some: { id: user_id }
+                },
+                slot_type: { not: "FERMETURE" } // <--- Exclu ici
             },
             include: {
                 participants: true,
@@ -46,34 +50,37 @@ export const POST: RequestHandler = async (event) => {
             }
         });
 
-        // Calculate statistics
+        // --- CALCULS ---
+
+        // Stat 1 : Inscriptions totales (hors fermetures)
         const totalSlotSubscriptions = participantSlots.length;
-        const attendedSlots = participantSlots.filter(slot => 
+
+        // Stat 2 & 3 : Présences et Durée de grimpe
+        const attendedSlots = participantSlots.filter(slot =>
             slot.attendees.some(a => a.id === user_id)
         );
         const totalAttendances = attendedSlots.length;
 
-        // Total climbing duration (only for slots where user attended, not just subscribed)
         const totalClimbingDuration = attendedSlots.reduce((total, slot) => {
             const start = new Date(slot.starts_at);
             const end = new Date(slot.ends_at);
-            const duration = (end.getTime() - start.getTime()) / (1000 * 60); // in minutes
+            const duration = (end.getTime() - start.getTime()) / (1000 * 60); // minutes
             return total + duration;
         }, 0);
 
-        // Slots opened by user (as owner)
-        const slotsOpened = ownerSlots.length;
+        // Stat 4 : Créneaux encadrés (hors fermetures)
+        const slotsOpened = responsibleSlots.length;
 
-        // Total duration of opened slots
-        const totalOpenedDuration = ownerSlots.reduce((total, slot) => {
+        // Stat 5 : Durée d'encadrement (hors fermetures)
+        const totalOpenedDuration = responsibleSlots.reduce((total, slot) => {
             const start = new Date(slot.starts_at);
             const end = new Date(slot.ends_at);
-            const duration = (end.getTime() - start.getTime()) / (1000 * 60); // in minutes
+            const duration = (end.getTime() - start.getTime()) / (1000 * 60); // minutes
             return total + duration;
         }, 0);
 
-        // Total participants in all slots opened by user
-        const totalParticipantsInOpenedSlots = ownerSlots.reduce((total, slot) => {
+        // Stat 6 : Participants gérés (hors fermetures)
+        const totalParticipantsInOpenedSlots = responsibleSlots.reduce((total, slot) => {
             return total + slot.participants.length;
         }, 0);
 

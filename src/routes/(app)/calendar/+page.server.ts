@@ -6,82 +6,65 @@ import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
 import type { PageServerLoad } from "./$types";
 
+const minimalUserSelect = { id: true };
+const managerUserSelect = { id: true, first_name: true, last_name: true, cotisant_as: true, cotisant_grinp: true };
+
 export const load: PageServerLoad = async (event) => {
   const user = event.locals.user;
+  if (!user) redirect(302, "/login");
 
-  // Redirige vers la page de connexion si l'utilisateur n'est pas authentifié
-  if (!user) {
-    redirect(
-      302,
-      "/login",
-    );
-  }
+  const dateParam = event.url.searchParams.get("date");
 
   try {
-    // Extrait la date à partir de l'URL ou des paramètres
-    const dateParam = event.url.searchParams.get("date");
-
-    // Convertit le paramètre en objet Date (assurez-vous que `dateParam` est au bon format)
     const date = dateParam ? new Date(dateParam) : new Date();
+    if (isNaN(date.getTime())) return { status: 400, error: "Invalid date" };
 
-    // Vérifie si la date est valide
-    if (isNaN(date.getTime())) {
-      // La date est invalide, vous pouvez renvoyer une erreur ou une date par défaut
-      return {
-        status: 400,
-        error: "Invalid date parameter",
-      };
-    }
-
-    // Normalise la date au début de la journée (00:00:00)
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-
-    // Crée une date pour la fin de la journée (23:59:59)
     const endOfDay = new Date(startOfDay);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Trouve tous les créneaux du jour (max 3)
     const slots = await prisma.slot.findMany({
-      where: {
-        starts_at: {
-          gte: startOfDay,
-          lt: endOfDay,
-        },
+      where: { starts_at: { gte: startOfDay, lt: endOfDay } },
+      include: {
+        responsibles: { select: { id: true } },
+        owner: { select: managerUserSelect }
       },
-      include: { 
-        responsibles: true,
-        owner: true
-      },
-      orderBy: {
-        starts_at: 'asc'
-      }
+      orderBy: { starts_at: 'asc' }
     });
 
-    // Get all users for the add user feature
-    const all_users = await prisma.user.findMany();
+    const all_users = await prisma.user.findMany({ select: { id: true, first_name: true, last_name: true } });
 
-    // Prepare data for each slot
     const slotsData = await Promise.all(slots.map(async (slot) => {
-      const participants_list = await prisma.user.findMany({
-        where: {
-          slots: {
-            some: {
-              id: slot.id,
-            },
-          },
-        },
+      const isOwner = user.instructor && slot.owner_id === user.id;
+      const isResponsible = slot.responsibles.some(r => r.id === user.id);
+      const canManage = user.root || isOwner || isResponsible;
+
+      const rawParticipants = await prisma.user.findMany({
+        where: { slots: { some: { id: slot.id } } },
+        select: canManage ? managerUserSelect : minimalUserSelect
       }) ?? [];
 
-      const attendees_list = await prisma.user.findMany({
-        where: {
-          attended_slots: {
-            some: {
-              id: slot.id,
-            },
-          },
-        },
+      const rawAttendees = await prisma.user.findMany({
+        where: { attended_slots: { some: { id: slot.id } } },
+        select: canManage ? managerUserSelect : minimalUserSelect
       }) ?? [];
+
+      // --- FIX : ANONYMISATION INTELLIGENTE ---
+      const participants_list = canManage 
+        ? rawParticipants 
+        : rawParticipants.map((p, i) => {
+            // Si c'est l'utilisateur courant, on garde son vrai ID
+            if (p.id === user.id) return { ...p, first_name: "Moi", last_name: "" };
+            return { id: `anon-${i}`, first_name: "Grimpeur", last_name: "" };
+        });
+
+      const attendees_list = canManage 
+        ? rawAttendees 
+        : rawAttendees.map((p, i) => {
+            if (p.id === user.id) return { ...p, first_name: "Moi", last_name: "" };
+            return { id: `hidden-${i}`, first_name: "Présent", last_name: "" };
+        });
 
       return {
         slot,
@@ -91,21 +74,45 @@ export const load: PageServerLoad = async (event) => {
       };
     }));
 
-    // Retourne les données nécessaires à la page
+    // (Reste du code Marqueurs inchangé...)
+    const startWindow = new Date(date);
+    startWindow.setDate(1);
+    startWindow.setMonth(startWindow.getMonth() - 1);
+    const endWindow = new Date(date);
+    endWindow.setDate(1);
+    endWindow.setMonth(endWindow.getMonth() + 2);
+
+    const markerSlots = await prisma.slot.findMany({
+        where: { starts_at: { gte: startWindow, lt: endWindow } },
+        select: {
+            id: true,
+            starts_at: true,
+            slot_type: true,
+            participants: { where: { id: user.id }, select: { id: true } }
+        }
+    });
+
+    const markers = markerSlots.map(s => ({
+        date: s.starts_at.toISOString().split('T')[0],
+        type: s.slot_type,
+        isEnrolled: s.participants.length > 0
+    }));
+
     return {
       slots: slotsData,
-      user: event.locals.user,
+      user: { id: user.id, root: user.root, instructor: user.instructor },
       form: await superValidate(zod(slotScheme)),
-      all_users: all_users,
-      dateString: dateParam || date.toISOString().split('T')[0]
+      all_users: canManageGlobal(user) ? all_users : [],
+      dateString: dateParam || date.toISOString().split('T')[0],
+      markers
     };
-  } catch (error: any) {
-    return {
-      slots: [],
-      user: event.locals.user,
-      form: await superValidate(zod(slotScheme)),
-      all_users: [],
-      dateString: dateParam || new Date().toISOString().split('T')[0]
-    };
+
+  } catch (error) {
+    console.error(error);
+    return { slots: [], user: null, all_users: [], markers: [], dateString: "" };
   }
 };
+
+function canManageGlobal(u: any) {
+    return u.root || u.instructor;
+}

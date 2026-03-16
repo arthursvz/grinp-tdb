@@ -5,14 +5,18 @@ services:
       - .env.docker
     environment:
       DATABASE_URL: postgresql://theobessel:root@db:5432/grinp
-      ORIGIN: http://4.233.209.231
-      REDIRECT_URI: http://4.233.209.231/login
+      ORIGIN: https://grinp.inpt.fr
+      REDIRECT_URI: https://grinp.inpt.fr/login
+      CHURROS_CLIENT_ID: ${CHURROS_CLIENT_ID}
+      CHURROS_CLIENT_SECRET: ${CHURROS_CLIENT_SECRET}
       DEV: true
+      BODY_SIZE_LIMIT: 10M
     ports:
       - "80:3000"
+      - "3000:3000"
     depends_on: [db]
   db:
-    image: postgres:latest
+    image: postgres:17
     environment:
       POSTGRES_USER: theobessel
       POSTGRES_PASSWORD: root

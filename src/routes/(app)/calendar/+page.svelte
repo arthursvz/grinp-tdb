@@ -26,29 +26,27 @@
             slot: Slot;
             owner: User;
             participants_list: User[];
-            attendees_list: User[];
+             attendees_list: User[];
         }>;
         user: User;
         form: any;
         all_users: User[];
         dateString: string;
+        // NOUVEAU : Réception des marqueurs
+        markers: Array<{ date: string, type: string, isEnrolled: boolean }>;
     };
 
-    // Récupérer la date dans l'URL au chargement
     if (browser) {
         const query = new URLSearchParams($page.url.searchParams.toString());
         const dateInUrl = query.get("date");
-        
+
         if (dateInUrl) {
-            // Si une date est présente dans l'URL, on l'utilise pour initialiser `value`
             value = parseDate(dateInUrl);
         } else {
-            // Sinon, on initialise avec la date du jour
             value = today(getLocalTimeZone());
         }
     }
 
-    // Mettre à jour l'URL lorsque `value` change
     $: {
         if (browser) {
             const query = new URLSearchParams($page.url.searchParams.toString());
@@ -56,20 +54,18 @@
                 query.set("date", value.toString());
             }
             goto($page.url.pathname + "?" + query.toString(), {
-                replaceState: true,  // Utilise `replaceState` pour éviter de pousser dans l'historique
+                replaceState: true,
             });
         }
     }
-
 </script>
 
 <Card class="m-auto w-full min-h-[calc(100vh-4rem)]">
     <CardHeader>
         <CardTitle>Calendrier</CardTitle>
-        <CardDescription
-            >Le calendrier permettant de s'inscrire aux différents créneaux et
-            évènements.</CardDescription
-        >
+        <CardDescription>
+            Le calendrier permettant de s'inscrire aux différents créneaux et évènements.
+        </CardDescription>
     </CardHeader>
 
     <div class="relative">
@@ -85,6 +81,7 @@
             weekStartsOn={1}
             bind:value
             class="rounded-md border md:w-1/2"
+            markers={data.markers} 
         />
 
         <div class="relative">
@@ -96,6 +93,5 @@
         <div class="flex flex-col gap-4 w-full md:w-1/2">
             <SlotCard {data} slotDate={value?.toString()}/>
         </div>
-                
     </CardContent>
 </Card>

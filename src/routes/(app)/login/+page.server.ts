@@ -2,8 +2,9 @@ import { env } from "$env/dynamic/private";
 import { loginScheme } from "$lib";
 import { authentik, lucia } from "@/server/lucia.js";
 import prisma from "@/server/prisma.js";
+import { logger } from "$lib/server/logger"; // <--- IMPORT AJOUTÉ
 import { error, fail, type Actions, type ServerLoadEvent } from "@sveltejs/kit";
-import { OAuth2RequestError, generateCodeVerifier, generateState } from "arctic";
+import { generateCodeVerifier, generateState } from "arctic";
 import * as argon2 from "argon2";
 import { redirect, setFlash } from "sveltekit-flash-message/server";
 import { superValidate } from "sveltekit-superforms";
@@ -20,133 +21,53 @@ export const load: PageServerLoad = async (event: ServerLoadEvent) => {
   const oauthState = event.cookies.get("oauthState") ?? null;
   const oauthCodeVerifier = event.cookies.get("oauthCodeVerifier") ?? null;
 
-	const state = event.url.searchParams.get("state");
-	const code = event.url.searchParams.get("code");
+  const state = event.url.searchParams.get("state");
+  const code = event.url.searchParams.get("code");
 
   if (!code || !state || !oauthState || !oauthCodeVerifier) {
     // Do nothing
   } else if (state !== oauthState) {
-    // Error 400: OAuth state mismatch
     throw error(400, "OAuth state mismatch");
   } else {
     try {
       const tokens = await authentik.validateAuthorizationCode(code, oauthCodeVerifier);
       const response = await fetch("https://auth.inpt.fr/application/o/userinfo/", {
-        method: 'post',
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-          'Content-Type': 'application/json'
-        }
+        method: "post",
+        headers: { Authorization: `Bearer ${tokens.accessToken}`, "Content-Type": "application/json" }
       });
 
       const user: AuthentikUserResult = await response.json();
 
-      let prismaUser = await prisma.user.findUnique({
-        where: {
-          churros_uid: user.preferred_username
-        }
-      });
-
-      const existsClassicUser = await prisma.user.findUnique({
-        where: {
-          email: user.email
-        }
-      })
-      .then((u) => u ? true : false)
-      .catch(() => false);
-
-      if (!prismaUser) {
-        if (existsClassicUser) {
-          prismaUser = await prisma.user.update({
-            where: {
-              email: user.email
-            },
-            data: {
-              churros_uid: user.preferred_username
-            }
-          });
-        } else {
-          prismaUser = await prisma.user.create({
-            data: {
-              churros_uid: user.preferred_username,
-              first_name: user.firstName,
-              last_name: user.lastName,
-              email: user.email,
-            }
-          });
-        }
-      }
-
-      // Fetch churros.inpt.fr/graphql to get the grinp group
-      // Check if the user is root or instructor or not
-      const response2 = await fetch("https://churros.inpt.fr/graphql", {
-        method: 'post',
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-          'Content-Type': 'application/json'
+      const prismaUser = await prisma.user.upsert({
+        where: { email: user.email },
+        update: {
+          churros_uid: user.preferred_username,
+          first_name: user.firstName,
+          last_name: user.lastName
         },
-        body: JSON.stringify({
-          query: `{
-            group(uid: "grinp-inp") {
-              members {
-                canScanEvents
-                canEditArticles
-                canEditMembers
-                president
-                secretary
-                treasurer
-                vicePresident
-                member {
-                  uid
-                }
-              }
-            }
-          }`
-        })
+        create: {
+          email: user.email,
+          churros_uid: user.preferred_username,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          root: false,
+          instructor: false
+        }
       });
-
-      const grinp = await response2.json();
-      const grinp_member = grinp.data.group.members.find((members : any) => members.member.uid === user.preferred_username);
-
-      const root = grinp_member?.president || grinp_member?.treasurer;
-      const instructor = root
-        || grinp_member?.canScanEvents
-        || grinp_member?.canEditArticles
-        || grinp_member?.canEditMembers
-        || grinp_member?.vicePresident
-        || grinp_member?.secretary;
-
-
-      if (instructor) {
-        prismaUser = await prisma.user.update({
-          where: {
-            churros_uid: user.preferred_username
-          },
-          data: {
-            root: root,
-            instructor: instructor
-          }
-        });
-      }
 
       const session = await lucia.createSession(prismaUser.id, {
         userId: prismaUser.id,
-        expiresAt: new Date(Date.now() + 1000 * maxCookiesAge), // 15 days
+        expiresAt: new Date(Date.now() + 1000 * maxCookiesAge),
       });
       const sessionCookie = lucia.createSessionCookie(session.id);
+      event.cookies.set(sessionCookie.name, sessionCookie.value, { path: "/", ...sessionCookie.attributes });
 
-      event.cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: "/",
-        ...sessionCookie.attributes,
-      });
-      
+      // --- LOG AJOUTÉ ---
+      await logger.log(prismaUser.id, "LOGIN_OAUTH", "Connexion via Authentik (INP)");
+      // ------------------
+
     } catch (e) {
-      if (e instanceof OAuth2RequestError) {
-        throw error(400, e.message);
-      }
-      else if (e instanceof Error) {
-        throw error(500, e.message);
-      }
+      if (e instanceof Error) throw error(500, e.message);
     }
 
     throw redirect(
@@ -171,7 +92,6 @@ export const actions: Actions = {
     if (!form.valid) {
       return fail(400, { form });
     } else {
-      // Verify the user's credentials
       try {
         const user = await prisma.user.findUnique({
           where: {
@@ -216,6 +136,11 @@ export const actions: Actions = {
                 path: "/",
                 ...sessionCookie.attributes,
               });
+              
+              // --- LOG AJOUTÉ ---
+              await logger.log(user.id, "LOGIN_MANUAL", "Connexion par mot de passe");
+              // ------------------
+
             } catch (error: any) {
               console.log(error);
             }
@@ -276,7 +201,7 @@ export const actions: Actions = {
 
 interface AuthentikUserResult {
   preferred_username: string;
-	firstName: string;
+  firstName: string;
   lastName: string;
   email: string;
   churrosGroups: string[];

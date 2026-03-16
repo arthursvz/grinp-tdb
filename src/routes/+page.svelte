@@ -1,162 +1,104 @@
 <script lang="ts">
-    import {
-      Card,
-      CardContent,
-      CardHeader,
-      CardTitle,
-    } from "$lib/components/ui/card";
+    import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
     import Button from "@/components/ui/button/button.svelte";
     import UserStatsOverview from "$lib/components/UserStatsOverview.svelte";
     import logo from "$lib/assets/logo.png";
 
-    
     export let data;
 
     $: user = data?.user;
-    
+    $: statsGlobal = data?.statsGlobal;
+    // On récupère la beta envoyée par le serveur (+page.server.ts)
+    $: dailyBeta = data?.dailyBeta; 
+
     let showStats = true;
 </script>
 
-{#if user}
-    <div class="w-full space-y-6 pb-12">
-        <div class="w-3/4 mx-auto py-6">
-            <h1 class="text-3xl font-bold">Bienvenue {user.first_name || 'utilisateur'} !</h1>
+<div class="w-full space-y-12 pb-12">
+    {#if user}
+        <div class="w-3/4 mx-auto py-8 space-y-6">
+            <div class="flex justify-between items-end border-b pb-8">
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight italic">Salut, {user.first_name} !</h1>
+                    <p class="text-muted-foreground mt-2 text-lg">Prêt pour une nouvelle séance au club ?</p>
+                </div>
+                <img src={logo} alt="Logo" class="h-20 opacity-80 hidden md:block" />
+            </div>
+
+            <div class="p-4 bg-primary/5 border-l-4 border-primary rounded-r-lg shadow-sm group animate-in fade-in slide-in-from-left duration-700">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-lg">💡</span>
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">La Beta du jour</span>
+                </div>
+                <p class="text-sm italic font-medium leading-relaxed">"{dailyBeta}"</p>
+            </div>
         </div>
 
-        <div class="w-3/4 mx-auto flex gap-6 items-start">
-            <div class="flex-1">
-                <div 
-                    class="p-4 cursor-pointer hover:bg-black hover:bg-opacity-5 transition-colors border-b"
-                    on:click={() => showStats = !showStats}
-                    role="button"
-                    tabindex="0"
-                    on:keydown={(e) => e.key === 'Enter' && (showStats = !showStats)}
-                >
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex-1">
-                            <h2 class="text-xl font-bold">Vos statistiques</h2>
-                        </div>
-                        <span class="text-lg">{showStats ? '▼' : '▶'}</span>
-                    </div>
-                </div>
+        <div class="w-3/4 mx-auto space-y-8">
+            <div
+                class="flex items-center justify-between cursor-pointer group"
+                on:click={() => showStats = !showStats}
+                on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (showStats = !showStats)}
+                role="button"
+                tabindex="0"
+            >
+                <h2 class="text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">
+                    📊 Statistiques & Activité
+                </h2>
+                <span class="text-xl text-muted-foreground">{showStats ? '▼' : '▶'}</span>
+            </div>
 
-                {#if showStats}
-                    <div class="pt-6">
+            {#if showStats}
+                <div class="space-y-10 pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                    <div class="space-y-4">
+                        <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">Le club en {statsGlobal.monthName} 2026</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-muted/30 border border-border/50 rounded-lg flex justify-between items-center shadow-sm">
+                                <span class="text-sm font-medium">Créneaux ouverts</span>
+                                <span class="text-2xl font-black text-primary">{statsGlobal.count}</span>
+                            </div>
+                            <div class="p-4 bg-muted/30 border border-border/50 rounded-lg flex justify-between items-center shadow-sm">
+                                <span class="text-sm font-medium">Heures d'encadrement</span>
+                                <span class="text-2xl font-black text-primary">{statsGlobal.hours}h</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">Votre progression</h3>
                         <UserStatsOverview user_id={user.id} />
                     </div>
-                {/if}
+                </div>
+            {/if}
+        </div>
+    {:else}
+        <div class="m-auto w-full flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+            <img src={logo} alt="Logo" class="h-32 mb-8 opacity-90" />
+            <h1 class="text-4xl font-black mb-4 tracking-tighter">Gr'INP Climbing</h1>
+            <p class="text-muted-foreground max-w-md mb-8">Connectez-vous pour accéder au calendrier et gérer vos inscriptions.</p>
+            <Button href="/login" class="px-10 py-6 text-lg font-bold shadow-xl">Accéder au Dashboard</Button>
+        </div>
+    {/if}
+
+    <div class="w-3/4 mx-auto pt-16 border-t space-y-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-sm leading-relaxed">
+            <div>
+                <h4 class="font-bold mb-3 uppercase tracking-wider text-xs">À propos du Gr'INP</h4>
+                <p class="text-muted-foreground">Rattaché à l'Association Sportive, le club offre un cadre structuré pour la pratique de l'escalade, du loisir à la compétition universitaire.</p>
             </div>
-            <div class="flex-shrink-0">
-                <img src={logo} alt="Logo GR'INP" class="h-40 w-40 object-contain" />
+            <div>
+                <h4 class="font-bold mb-3 uppercase tracking-wider text-xs">Événements</h4>
+                <p class="text-muted-foreground">Le club organise la Nuit de l'Escalade et participe aux championnats de France des Grandes Écoles.</p>
             </div>
         </div>
 
-        <div class="w-3/4 mx-auto">
-            <div class="border-b pb-4">
-                <h1 class="text-2xl font-bold">À propos du club</h1>
+        <footer class="pt-8 pb-12 opacity-30 hover:opacity-100 transition-opacity duration-500">
+            <div class="text-[9px] text-center space-y-1 text-muted-foreground border-t border-dashed pt-8">
+                <p class="font-semibold uppercase tracking-widest mb-2">Crédits techniques</p>
+                <p>Architecture initiale : Théo (2026) • Maintenance & V2 : Arthur (2027)</p>
+                <p>Remerciement spécial à Alexis (2027) pour le support nocturne durant le build du 20/01/2026.</p>
+                <p class="pt-4 italic">© 2026 Gr'INP Climbing Club</p>
             </div>
-
-            <div class="pt-6 space-y-6">
-                <div>
-                    <h2 class="text-xl font-bold mb-2">Qui sommes-nous ?</h2>
-                    <p>
-                        Le club d'escalade de l'INP Toulouse, rattaché à l'Association
-                        Sportive de l'INP, est ouvert à tous les passionnés de grimpe, du
-                        débutant au confirmé. Que vous souhaitiez apprendre à grimper,
-                        progresser techniquement ou participer à des compétitions, notre
-                        club vous propose un cadre dynamique et bien encadré.
-                    </p>
-                </div>
-
-                <div>
-                    <h2 class="text-xl font-bold mb-2">Nos créneaux d'entraînement</h2>
-                    <p>
-                        Nous proposons des créneaux après les cours, pratiquement tous les
-                        jours. Nos initiateurs SAE (Structure Artificielle d'Escalade) vous
-                        aideront à apprendre les techniques de base de la grimpe et de
-                        l'assurage, ou à vous perfectionner en escalade en tête. Pour
-                        garantir un encadrement de qualité, chaque créneau est limité à 18
-                        participants par initiateur.
-                    </p>
-                </div>
-
-                <div>
-                    <h2 class="text-xl font-bold mb-2">Participez aux compétitions</h2>
-                    <p>
-                        Notre club participe régulièrement aux compétitions universitaires
-                        régionales, et nos membres ont l'opportunité de représenter l'INP
-                        Toulouse aux prestigieux championnats de France des Grandes Écoles.
-                    </p>
-                </div>
-
-                <div>
-                    <h2 class="text-xl font-bold mb-2">Événements spéciaux</h2>
-                    <p>
-                        Chaque année, nous organisons la Nuit de l'Escalade, un événement
-                        incontournable pour les amateurs d'escalade, avec des activités
-                        diverses autour de l'escalade dans une ambiance conviviale garantie.
-                    </p>
-                </div>
-            </div>
-        </div>
+        </footer>
     </div>
-{:else}
-    <Card class="m-auto w-full flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
-        <CardHeader class="w-3/4">
-            <CardTitle class="pb-4">
-                <h1 class="text-3xl font-bold">Bienvenue !</h1>
-                sur le site du Club d'Escalade de l'INP Toulouse
-            </CardTitle>
-            <!--<img src={logo} alt="logo" />-->
-            <!--<CardDescription>Entrez votre E-Mail ci dessous pour vous connecter</CardDescription>-->
-            <p>
-                Le club d'escalade de l'INP Toulouse, rattaché à l'Association
-                Sportive de l'INP, est ouvert à tous les passionnés de grimpe, du
-                débutant au confirmé. Que vous souhaitiez apprendre à grimper,
-                progresser techniquement ou participer à des compétitions, notre
-                club vous propose un cadre dynamique et bien encadré.
-            </p>
-        </CardHeader>
-
-        <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-                <span class="m-4 w-full border-t" />
-            </div>
-        </div>
-
-        <CardContent class="flex flex-col items-center gap-4 pt-6 w-3/4">
-            <h1 class="text-xl font-bold">Rejoignez-nous !</h1>
-            <p>
-                Sur ce site, vous pouvez vous inscrire facilement à nos créneaux
-                d'escalade et découvrir les différents événements proposés par le
-                club. Rejoignez-nous pour partager votre passion et progresser
-                ensemble dans une ambiance sportive et amicale.
-            </p>
-
-            <!--<h2>Nos créneaux d'entraînement</h2>
-            <p>
-                Nous proposons des créneaux après les cours, pratiquement tous les
-                jours. Nos initiateurs SAE (Structure Artificielle d'Escalade) vous
-                aideront à apprendre les techniques de base de la grimpe et de
-                l'assurage, ou à vous perfectionner en escalade en tête. Pour
-                garantir un encadrement de qualité, chaque créneau est limité à 18
-                participants par initiateur.
-            </p>
-
-            <h2>Participez aux compétitions</h2>
-            <p>
-                Notre club participe régulièrement aux compétitions universitaires
-                régionales, et nos membres ont l'opportunité de représenter l'INP
-                Toulouse aux prestigieux championnats de France des Grandes Écoles.
-            </p>
-
-            <h2>Événements spéciaux</h2>
-            <p>
-                Chaque année, nous organisons la Nuit de l'Escalade, un événement
-                incontournable pour les amateurs d'escalade, avec des activités
-                diverses autour de l'escalade dans une ambiance conviviale garantie.
-            </p>-->
-            <Button href="/login" class="w-1/2">Se connecter</Button>
-        </CardContent>
-    </Card>
-{/if}
+</div>

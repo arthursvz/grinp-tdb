@@ -1,21 +1,27 @@
 import prisma from "@/server/prisma";
+import { logger } from "$lib/server/logger";
 import type { RequestEvent } from "@sveltejs/kit";
+import { requireActionWrite } from "$lib/server/bureau-access";
 
 export const POST = async (event: RequestEvent) => {
     const user = event.locals.user;
 
-    const prisma_user = await prisma.user.findUnique({
-        where: { id: user?.id }
-    });
-
-    if (!prisma_user?.root) {
-        return new Response(JSON.stringify({ ok: false, error: "Insufficient permissions" }), { status: 403 });
+    const access = await requireActionWrite(user?.id, "cotisations.reset");
+    if (!access.ok) {
+        return new Response(JSON.stringify({ ok: false, error: access.error }), { status: access.status });
     }
 
     try {
         await prisma.user.updateMany({
             data: { cotisant_as: false }
         });
+
+        await logger.log(
+            access.user.id,
+            "GESTION_RESET_COTISANT_AS",
+            "Remise a zero des cotisations AS",
+            "SYSTEM_WIDE",
+        );
 
         return new Response(JSON.stringify({ ok: true, message: "All AS cotisations reset" }), { status: 200 });
     } catch (error) {
