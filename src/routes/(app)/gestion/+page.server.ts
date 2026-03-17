@@ -59,6 +59,7 @@ const actionLabels: Record<ActionKey, string> = {
   "meetings.edit": "Editer un compte rendu",
   "meetings.delete": "Supprimer un compte rendu",
   "slots.edit.capacity": "Modifier la jauge d'un creneau",
+  "generer_recap": "Générer le récapitulatif",
   "slots.edit.details": "Modifier le nom et la description d'un creneau",
   "slots.edit.responsibles": "Modifier les coencadrants ou responsables",
   "slots.edit.type": "Modifier le type de creneau",
@@ -71,6 +72,8 @@ const actionLabels: Record<ActionKey, string> = {
   "alerts.edit": "Alerte site",
   "permissions.edit": "Modifier les permissions",
   "database.export": "Exporter la base",
+  "betas.edit": "Modifier les betas",
+  "betas.delete": "Supprimer les betas",
 };
 
 const uploadsBaseDir = process.env.NODE_ENV === "production"

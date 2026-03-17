@@ -498,26 +498,29 @@
             </div>
 
             <div class="flex flex-wrap justify-end gap-2 border-t px-6 py-4">
-                {#if canDeleteMembersEffective}
-                    <div class="flex items-center gap-2">
-                        <Button type="button" variant="destructive" on:click={deleteUser}>Supprimer</Button>
-                        {#if showDeleteBypassBadge}
-                            <div class="inline-flex w-fit items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
-                                {adminBypassLabel}
-                            </div>
-                        {/if}
-                    </div>
-                {/if}
-                {#if canEditAnyEffective && editMode}
-                    <div class="flex items-center gap-2">
-                        <Button type="button" on:click={saveUser}>Enregistrer</Button>
-                        {#if showEditBypassBadge}
-                            <div class="inline-flex w-fit items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
-                                {adminBypassLabel}
-                            </div>
-                        {/if}
-                    </div>
-                {/if}
+                    {#if canDeleteMembersEffective}
+                        <div class="flex items-center gap-2">
+                            <Button type="button" variant="destructive" on:click={deleteUser}>Supprimer</Button>
+                            {#if showDeleteBypassBadge}
+                                <div class="inline-flex w-fit items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
+                                    {adminBypassLabel}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                    {#if canEditAnyEffective && editMode}
+                        <div class="flex items-center gap-2">
+                            <Button type="button" on:click={saveUser}>Enregistrer</Button>
+                            {#if showEditBypassBadge}
+                                <div class="inline-flex w-fit items-center rounded border border-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">
+                                    {adminBypassLabel}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                    {#if (isRootUser || accessForUserActions?.generer_recap === "WRITE")}
+                        <Button type="button" variant="outline">Générer recap</Button>
+                    {/if}
             </div>
         </div>
     </div>

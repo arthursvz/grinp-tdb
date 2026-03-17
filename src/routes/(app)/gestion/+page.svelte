@@ -534,6 +534,7 @@
         "members.edit.instructor",
         "members.edit.roles",
         "members.delete",
+          "generer_recap",
       ],
     },
     {

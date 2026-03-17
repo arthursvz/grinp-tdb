@@ -38,6 +38,8 @@ export const load = loadFlash(async (event: ServerLoadEvent) => {
         instructor: instructor,
         bureau: bureau,
         bureauRole: bureauRole,
+        cotisant_as: prisma_user?.cotisant_as ?? false,
+        cotisant_grinp: prisma_user?.cotisant_grinp ?? false,
         canGestion: canGestion,
         globalAlert: alertMessage // <--- Ajouté ici
       };
@@ -48,6 +50,8 @@ export const load = loadFlash(async (event: ServerLoadEvent) => {
         instructor: false,
         bureau: false,
         bureauRole: null,
+        cotisant_as: false,
+        cotisant_grinp: false,
         canGestion: false,
         globalAlert: alertMessage // <--- Ajouté ici (visiteur non connecté)
       };
@@ -59,6 +63,8 @@ export const load = loadFlash(async (event: ServerLoadEvent) => {
       instructor: false,
       bureau: false,
       bureauRole: null,
+      cotisant_as: false,
+      cotisant_grinp: false,
       canGestion: false,
       globalAlert: alertMessage // <--- Ajouté ici (fallback erreur)
     };

@@ -19,7 +19,24 @@
         <div class="w-3/4 mx-auto py-8 space-y-6">
             <div class="flex justify-between items-end border-b pb-8">
                 <div>
-                    <h1 class="text-4xl font-extrabold tracking-tight italic">Salut, {user.first_name} !</h1>
+                    <h1 class="text-4xl font-extrabold tracking-tight italic">Salut, {data.user.first_name}</h1>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        {#if data.root}
+                            <span class="inline-flex items-center rounded bg-red-100 border border-red-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600">Admin</span>
+                        {/if}
+                        {#if data.bureau}
+                            <span class="inline-flex items-center rounded bg-yellow-100 border border-yellow-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-yellow-700">Bureau{#if data.bureauRole} - {data.bureauRole}{/if}</span>
+                        {/if}
+                        {#if data.instructor}
+                            <span class="inline-flex items-center rounded bg-blue-100 border border-blue-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">Instructeur</span>
+                        {/if}
+                        {#if data.cotisant_as}
+                            <span class="inline-flex items-center rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-600">Cotisant AS</span>
+                        {/if}
+                        {#if data.cotisant_grinp}
+                            <span class="inline-flex items-center rounded bg-blue-200 border border-blue-300 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-800">Cotisant Gr'INP</span>
+                        {/if}
+                    </div>
                     <p class="text-muted-foreground mt-2 text-lg">Prêt pour une nouvelle séance au club ?</p>
                 </div>
                 <img src={logo} alt="Logo" class="h-20 opacity-80 hidden md:block" />
